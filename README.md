@@ -15,3 +15,10 @@
 **YAML** é o padrão de configuração do projeto<br>
 **Dependências**
 - Spring Web
+
+---
+### APRESENTAÇÃO
+Os setores de **Marketing** e **Comercial** da empresa **Incorp Tech** sentiram necessidade de automzar suas tarefas.
+Atividades como análise de métricas, resumo de documentos, sugestão de novos conteúdos para publicidade e propaganda,
+etc... poderiam ser automatizados por um agente inteligente que trabalhe no modelo "AI-AUGMENTED", estendendo as habilidades
+do profissional.
