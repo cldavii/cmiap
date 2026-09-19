@@ -15,6 +15,7 @@
 **YAML** é o padrão de configuração do projeto<br>
 **Dependências**
 - Spring Web
+- LangChain4J
 
 ---
 ### APRESENTAÇÃO
