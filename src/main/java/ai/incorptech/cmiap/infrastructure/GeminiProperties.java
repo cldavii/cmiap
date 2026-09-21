@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
- * Parametros da integracao com o Google Gemini, prefixo {@code gemini} no application.properties.
+ * Parametros da integracao com o Google Gemini, prefixo {@code gemini} no application.yaml.
  *
  * @param apiKey chave da API do Google AI Studio; vem da variavel de ambiente GEMINI_API_KEY
  * @param modelName modelo usado nas chamadas de chat

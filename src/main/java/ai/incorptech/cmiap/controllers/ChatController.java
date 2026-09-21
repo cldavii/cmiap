@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping
 public class ChatController {
 
 	private final ChatService chatService;
@@ -22,9 +22,8 @@ public class ChatController {
 		this.chatService = chatService;
 	}
 
-	@PostMapping
+	@PostMapping("/chat")
 	public ChatReply chat(@RequestBody(required = false) ChatPrompt prompt) {
-		// Barra a requisicao na borda: prompt vazio nao chega a consumir cota da API.
 		if (prompt == null || prompt.message() == null || prompt.message().isBlank()) {
 			throw new IllegalArgumentException("O campo 'message' e obrigatorio e nao pode ser vazio.");
 		}
