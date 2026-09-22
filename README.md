@@ -51,11 +51,3 @@ No futuro, a arquitetura modular baseada em DDD nos permitirá expandir o sistem
 Atualmente já temos as bases para **2 Agentes**:
 1.  **Agente Tutor (`modules/tutor`)**: Especialista em ensino, dúvidas e suporte educativo.
 2.  **Agente de Editais (`modules/editais`)**: Especialista em análise e geração de informações sobre editais.
-
-Para completar os **8 Agentes**, planejamos adicionar os seguintes módulos (sugestão inicial):
-3.  **Agente Financeiro (`modules/financeiro`)**: Para análise de relatórios, orçamentos e custos.
-4.  **Agente de RH (`modules/rh`)**: Auxílio em triagem de currículos e dúvidas de colaboradores.
-5.  **Agente de Atendimento/Suporte (`modules/suporte`)**: SAC automatizado para resolver problemas de clientes.
-6.  **Agente de Vendas (`modules/vendas`)**: Auxilia na qualificação de leads e roteiros de negociação.
-7.  **Agente Jurídico (`modules/juridico`)**: Análise de contratos, termos e adequação à legislação (LGPD).
-8.  **Agente de Marketing (`modules/marketing`)**: Geração de copys, ideias de campanhas e análise de SEO.
