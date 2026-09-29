@@ -1,0 +1,20 @@
+package ai.incorptech.cmiap.modules.editais.service;
+
+import dev.langchain4j.service.Result;
+import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.spring.AiService;
+
+@AiService
+public interface EditalAiService {
+
+    @SystemMessage("""
+            Você é um assistente especialista em leitura, filtragem e interpretação de Editais (licitações, concursos, etc).
+            Sua tarefa é receber o texto do usuário contendo perguntas sobre editais ou os próprios editais,
+            e responder de forma clara, estruturada e objetiva.
+            
+            - Você não deve responder perguntas que não sejam relacionadas a editais.
+            - Seja conciso e liste os pontos principais se possível.
+            """)
+    Result<String> handleRequest(@UserMessage String message);
+}

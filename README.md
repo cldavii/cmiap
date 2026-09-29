@@ -1,25 +1,53 @@
-# Plataforma de Agentes Inteligentes para Marketing e Comercial
+# CMIAP - Sistema de Agentes de IA
 
----
-### ESTRUTURA DO PROJETO
-**Maven** é o gerenciador escolhido para esse projeto;<br>
-**Java 25.0.4-oracle** é a linguagem e versão definidas para esse projeto;<br>
-**Spring Boot 4.1.1** é o framework e versão para start do projeto;<br>
-**METADADOS**
-```
-<groupId>ai.incorptech</groupId>
-<artifactId>cmiap</artifactId>
-<version>0.0.1-SNAPSHOT</version>
-```
-**JAR** é o modo de empacotamento do projeto;<br>
-**YAML** é o padrão de configuração do projeto<br>
-**Dependências**
-- Spring Web
-- LangChain4J
+Este é um projeto desenvolvido com Spring Boot, focado em criar um ecossistema de Agentes Inteligentes integrados utilizando Langchain4j e a API do Google Gemini.
 
----
-### APRESENTAÇÃO
-Os setores de **Marketing** e **Comercial** da empresa **Incorp Tech** sentiram necessidade de automzar suas tarefas.
-Atividades como análise de métricas, resumo de documentos, sugestão de novos conteúdos para publicidade e propaganda,
-etc... poderiam ser automatizados por um agente inteligente que trabalhe no modelo "AI-AUGMENTED", estendendo as habilidades
-do profissional.
+## Arquitetura Atual (DDD - Domain-Driven Design)
+
+Atualmente, o projeto está estruturado em módulos baseados em domínios (Domain-Driven Design), separando responsabilidades por contexto delimitado (Bounded Contexts).
+
+### Árvore do Projeto (Current Project Tree)
+
+```text
+cmiap/
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/ai/incorptech/cmiap/
+    │   │   ├── CmiapApplication.java
+    │   │   ├── TerminalTestRunner.java
+    │   │   ├── config/
+    │   │   │   └── AiAgentsConfig.java
+    │   │   └── modules/
+    │   │       ├── editais/
+    │   │       │   ├── controller/EditalController.java
+    │   │       │   └── service/EditalAiService.java
+    │   │       └── tutor/
+    │   │           ├── controller/AssistantController.java
+    │   │           └── service/AssistantAiService.java
+    │   └── resources/
+    │       └── application.properties
+    └── test/
+        └── java/ai/incorptech/cmiap/
+            └── CmiapApplicationTests.java
+```
+
+## Bibliotecas e Dependências do Projeto
+
+O projeto utiliza o **Java 25** e as seguintes bibliotecas principais definidas no `pom.xml`:
+
+*   **Spring Boot (4.1.1)**
+    *   `spring-boot-starter-webmvc`: Para a criação de APIs REST.
+    *   `spring-boot-starter-webmvc-test`: Para testes automatizados da camada web.
+*   **Langchain4j (1.20.0)**
+    *   `langchain4j-spring-boot4-starter`: Integração oficial do Langchain4j com o Spring Boot 4.
+    *   `langchain4j-google-ai-gemini`: Integração específica para utilizar o modelo Google Gemini.
+*   **Lombok**: Para reduzir boilerplate (código repetitivo como Getters, Setters, Construtores).
+
+## O Que Faremos no Futuro (Expansão para 8 Agentes)
+
+No futuro, a arquitetura modular baseada em DDD nos permitirá expandir o sistema para suportar **8 Agentes de IA Especializados**. 
+
+Atualmente já temos as bases para **2 Agentes**:
+1.  **Agente Tutor (`modules/tutor`)**: Especialista em ensino, dúvidas e suporte educativo.
+2.  **Agente de Editais (`modules/editais`)**: Especialista em análise e geração de informações sobre editais.
