@@ -21,23 +21,23 @@ class AiIntegrationTest {
 		contextRunner
 				.withPropertyValues(
 						"gemini.api-key=chave-de-teste",
-						"gemini.model-name=gemini-2.5-flash")
+						"gemini.model-name=gemini-3.8-flash")
 				.run(context -> {
 					assertThat(context).hasSingleBean(ChatModel.class);
 
 					ChatModel chatModel = context.getBean(ChatModel.class);
 					assertThat(chatModel).isInstanceOf(GoogleAiGeminiChatModel.class);
 					assertThat(chatModel.defaultRequestParameters().modelName())
-							.isEqualTo("gemini-2.5-flash");
+							.isEqualTo("gemini-3.8-flash");
 				});
 	}
 
 	@Test
-	void usaGemini25FlashComoModeloPadrao() {
+	void usaGemini38FlashComoModeloPadrao() {
 		contextRunner
 				.withPropertyValues("gemini.api-key=chave-de-teste")
 				.run(context -> assertThat(context.getBean(ChatModel.class).defaultRequestParameters().modelName())
-						.isEqualTo("gemini-2.5-flash"));
+						.isEqualTo("gemini-3.8-flash"));
 	}
 
 	@Test

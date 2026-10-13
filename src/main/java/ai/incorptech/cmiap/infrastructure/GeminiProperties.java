@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties(prefix = "gemini")
 public record GeminiProperties(
 		String apiKey,
-		@DefaultValue("gemini-2.5-flash") String modelName,
+		@DefaultValue("gemini-3.8-flash") String modelName,
 		@DefaultValue("0.7") Double temperature,
 		@DefaultValue("2048") Integer maxOutputTokens,
 		@DefaultValue("60s") Duration timeout,

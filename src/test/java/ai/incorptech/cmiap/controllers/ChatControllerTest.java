@@ -30,7 +30,7 @@ class ChatControllerTest {
 		given(chatService.reply("Sugira 3 ideias de campanha para o lancamento"))
 				.willReturn("1. Teaser em video. 2. Webinar. 3. Co-marketing.");
 
-		mockMvc.perform(post("/api/chat")
+		mockMvc.perform(post("/chat")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\"message\":\"Sugira 3 ideias de campanha para o lancamento\"}"))
 				.andExpect(status().isOk())
@@ -39,7 +39,7 @@ class ChatControllerTest {
 
 	@Test
 	void devolve400QuandoOPromptEstaEmBranco() throws Exception {
-		mockMvc.perform(post("/api/chat")
+		mockMvc.perform(post("/chat")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\"message\":\"   \"}"))
 				.andExpect(status().isBadRequest());
@@ -49,7 +49,7 @@ class ChatControllerTest {
 
 	@Test
 	void devolve400QuandoOCampoMessageEstaAusente() throws Exception {
-		mockMvc.perform(post("/api/chat")
+		mockMvc.perform(post("/chat")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{}"))
 				.andExpect(status().isBadRequest());

@@ -52,6 +52,13 @@
 			<version>1.20.0</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Cliente HTTP do langchain4j sobre o RestClient do Spring. A AiIntegration usa o
+		     SpringRestClientBuilder e o ClientHttpRequestFactoryBuilder, que vem daqui. -->
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-http-client-spring-boot4-restclient</artifactId>
+			<version>1.20.0-beta30</version>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
