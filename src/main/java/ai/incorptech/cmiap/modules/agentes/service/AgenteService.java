@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
  * O pedido ao modelo tem duas mensagens:
  * - a de sistema, com as regras montadas a partir da ficha (texto nosso, confiavel);
  * - a do usuario, com os parametros e o pedido (texto de fora, tratado como dado).
- * Separar as duas impede que o usuario escreva algo que pareca uma regra do agente.
+ * Separar as duas reduz o risco de o modelo tratar o que o usuario escreveu como regra do agente.
  */
 @Service
 public class AgenteService {

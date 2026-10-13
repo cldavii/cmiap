@@ -43,6 +43,7 @@ public class AiIntegration {
 				.temperature(properties.temperature())
 				.maxOutputTokens(properties.maxOutputTokens())
 				.timeout(properties.timeout())
+				.maxRetries(properties.maxRetries())
 				.logRequestsAndResponses(properties.logRequestsAndResponses())
 				.build();
 	}

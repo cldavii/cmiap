@@ -11,7 +11,7 @@
     "Aplicar as diretrizes de marca (tom de voz)"
   ],
   "foraDeEscopo": [
-    "Qualquer material ligado a licitação (é do agente de Editais e Licitações)",
+    "Qualquer material ligado a licitação (a análise do edital é do agente de Editais e Licitações; a proposta de licitação é humana nesta versão)",
     "Conteúdo de marketing ou redes sociais (é do agente de Produção de Conteúdo)",
     "Qualificação de lead e primeiro contato de prospecção (é do agente de Prospecção e Qualificação de Leads). O Apoio Comercial entra quando o lead já está em negociação ativa: proposta enviada ou reunião realizada",
     "Qualquer escrita no CRM que altere estágio, valor ou responsável pelo negócio",
@@ -44,7 +44,7 @@
     "Preço ou condição comercial não confirmada: deixar em aberto e nunca herdar de proposta anterior sem validação",
     "Pedido de material ambíguo: pedir esclarecimento antes de gerar",
     "O mesmo lead com mais de um alerta (parado e follow-up vencido): juntar em um único alerta [adaptação desta versão]",
-    "Cliente com negociação comercial e licitação em paralelo: avisar que a parte da licitação é do agente de Editais e Licitações [adaptação desta versão]"
+    "Cliente com negociação comercial e licitação em paralelo: avisar que a análise do edital é do agente de Editais e Licitações e que a proposta de licitação é humana [adaptação desta versão]"
   ],
   "formatoDeSaida": [
     "O material pedido (minuta de proposta, e-mail, briefing ou roteiro), com os campos de preço em aberto quando não confirmados",

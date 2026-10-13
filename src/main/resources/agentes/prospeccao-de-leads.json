@@ -14,8 +14,9 @@
     "Buscar prospects ou enriquecer dados em fontes externas (nesta versão o usuário traz os dados)",
     "Qualquer gravação, atualização ou exclusão direta no CRM",
     "Enviar mensagem de prospecção, follow-up ou resposta",
-    "Negociação comercial, apresentação de proposta e fechamento de venda (é do agente de Apoio Comercial)",
-    "Documentação de licitação (é do agente de Editais e Licitações)",
+    "Negociação comercial, apresentação de proposta e fechamento de venda (é humana; o agente de Apoio Comercial só prepara os materiais de apoio)",
+    "Elaborar proposta comercial (a minuta fora de licitação é do agente de Apoio Comercial)",
+    "Elaborar proposta ou documentação de licitação (é humana nesta versão; a análise do edital e o checklist são do agente de Editais e Licitações)",
     "Gestão de campanhas pagas e orçamento",
     "Análises consolidadas de performance entre canais"
   ],

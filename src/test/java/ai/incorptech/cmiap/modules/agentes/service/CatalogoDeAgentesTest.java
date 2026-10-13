@@ -36,9 +36,9 @@ class CatalogoDeAgentesTest {
 				.isInstanceOf(AgenteNaoEncontradoException.class);
 	}
 
-	// Os documentos reais de marca da empresa nao podem ser enviados ao modelo de IA
-	// (decisao D58, no README do repositorio squad38-incorp). Por isso as fontes daqui
-	// sao ficticias, e este teste garante que nem elas nem as fichas citam a empresa.
+	// Os documentos reais de marca da empresa sao confidenciais e nao podem ser enviados
+	// ao modelo de IA. Por isso as fontes daqui sao ficticias, e este teste garante que
+	// nem elas nem as fichas citam a empresa.
 	// O "\b" (fronteira de palavra) evita o falso alarme em palavras como "Incorporar".
 	@Test
 	void nenhumaFichaNemFonteCitaAEmpresaReal() {

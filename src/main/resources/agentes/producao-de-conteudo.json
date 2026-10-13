@@ -31,7 +31,7 @@
     "requerAdministrador": [],
     "nunca": [
       "Finalizar um material sem confirmação explícita do usuário",
-      "Definir o volume do calendário sem a capacidade operacional informada pelo usuário"
+      "Propor ou definir a estrutura do calendário sem a capacidade operacional informada pelo usuário"
     ]
   },
   "regrasDeDecisao": [
