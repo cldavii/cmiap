@@ -1,0 +1,28 @@
+{
+  "id": "sem-lista-nunca",
+  "nome": "Agente de teste",
+  "objetivo": "Testar a leitura das fichas.",
+  "escopo": [
+    "Responder testes"
+  ],
+  "foraDeEscopo": [
+    "Qualquer outra coisa"
+  ],
+  "autonomia": {
+    "autonomo": [
+      "Responder"
+    ],
+    "autonomoComNotificacao": [],
+    "requerAprovacao": [],
+    "requerAdministrador": [],
+    "nunca": []
+  },
+  "regrasDeDecisao": [
+    "Seguir o teste"
+  ],
+  "formatoDeSaida": [
+    "Texto curto"
+  ],
+  "parametros": [],
+  "fontes": []
+}

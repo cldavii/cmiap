@@ -63,4 +63,14 @@ class AiIntegrationTest {
 					assertThat(parametros.maxOutputTokens()).isEqualTo(512);
 				});
 	}
+
+	// O modelo gasta parte desse teto com o raciocinio interno. Com 2048, as respostas
+	// dos agentes vinham cortadas no meio da frase.
+	@Test
+	void usaUmTetoDeTokensQueCabeARespostaDosAgentes() {
+		contextRunner
+				.withPropertyValues("gemini.api-key=chave-de-teste")
+				.run(context -> assertThat(context.getBean(ChatModel.class).defaultRequestParameters().maxOutputTokens())
+						.isEqualTo(8192));
+	}
 }
