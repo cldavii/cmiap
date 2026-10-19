@@ -1,6 +1,5 @@
 package ai.incorptech.cmiap.infrastructure.ai.modules.publicNotices;
 
-import dev.langchain4j.service.Result;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;

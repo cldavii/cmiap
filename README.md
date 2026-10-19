@@ -7,7 +7,8 @@ nos processos de trabalho da empresa **Incorp Tech**.
 
 - Cadastro de usuário;
 - Login de usuários;
-- Agente para leitura de editais(Em progresso);
+- Agente de Produção de Conteúdo, com geração orientada por tema, formato, produto, canal, objetivo, público e referências;
+- Agente de leitura e interpretação de editais (em progresso).
 
 ## Tecnologias
 | Tecnologia | Uso |
@@ -38,7 +39,8 @@ contém também configuração de segurança, JWT e integração de IA.
 O contrato `UserRepository` funciona como porta do domínio;  
 `UserRepositoryAdapter` conecta essa porta ao repositório Spring Data JPA.  
 `UserMapper` usa MapStruct para converter entre `User` e `UserSetup`.  
-O serviço de editais é declarado como interface LangChain4j com instruções de sistema.
+Os agentes de conteúdo e editais são declarados como interfaces LangChain4j com instruções de sistema;
+seus controllers ficam na camada `presentation`.
 
 Essa estrutura aplica alguns conceitos de DDD, como entidade, value object, caso de uso e repositório.
 Não é uma implementação completa de DDD: não há, por exemplo, agregados e eventos de domínio explícitos ou módulos separados por bounded context.
@@ -58,12 +60,13 @@ src/
 │   │   │   ├── repository/UserRepository.java
 │   │   │   └── valueObject/Email.java
 │   │   ├── infrastructure/
+│   │   │   ├── ai/modules/contentGenerator/ContentGeneratorService.java
 │   │   │   ├── ai/modules/publicNotices/PublicNoticeService.java
 │   │   │   ├── persistence/ (adapter, entidade e mapper)
 │   │   │   └── security/ (configuração, filtro e serviço JWT)
 │   │   └── presentation/
-│   │       ├── controller/ (AuthController, PublicNoticeController)
-│   │       └── controller/dto/auth/
+│   │       ├── controller/ (AuthController, ContentGenerationController, PublicNoticeController)
+│   │       └── controller/dto/ (auth, content)
 │   └── resources/application.properties
 └── test/
         ├── java/ai/incorptech/cmiap/
@@ -104,6 +107,47 @@ Exemplo de resposta:
     "token": "<jwt>",
     "type": "Bearer"
 }
+```
+
+### Gerar conteúdo
+
+`POST /ai/content/generate` recebe um JSON e retorna `200 OK` com o conteúdo gerado no campo
+`content`. A rota exige autenticação Bearer.
+
+Campos `topic` e `format` são obrigatórios. Os demais são opcionais. Os limites são: tema 500
+caracteres, formato/produto/canal 100, objetivo/público 300 e referências 4.000.
+
+```json
+{
+    "topic": "Como a gestão documental integrada pode apoiar conselhos profissionais",
+    "format": "Carrossel para LinkedIn",
+    "product": "Incorp Next",
+    "channel": "LinkedIn",
+    "objective": "Explicar os benefícios de organizar documentos e processos em um fluxo integrado",
+    "audience": "Gestores de conselhos profissionais",
+    "referenceFacts": "O sistema permite configurar fluxos de trabalho e centralizar documentos."
+}
+```
+
+Exemplo de resposta:
+
+```json
+{
+    "content": "Texto produzido conforme o tema, formato e contexto informados."
+}
+```
+
+O campo `content` é texto gerado pela IA. O formato visual do texto não é fixado como HTML ou
+README; informe o formato editorial desejado em `format`. O agente não publica o conteúdo em redes
+sociais e não deve inventar dados ou funcionalidades ausentes das referências fornecidas.
+
+### Consultar editais
+
+`POST /ai/pn/generate` recebe o parâmetro `prompt` e retorna a resposta do agente como texto. A rota
+exige autenticação Bearer.
+
+```text
+POST /ai/pn/generate?prompt=Resuma%20os%20prazos%20deste%20edital
 ```
 
 ## Configuração e execução

@@ -5,14 +5,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/ai")
+@RequestMapping("/ai/pn")
 @RequiredArgsConstructor
 public class PublicNoticeController {
 
     private final PublicNoticeService publicNoticeService;
 
     //    Editais
-    @PostMapping("/publicNotice/ask")
+    @PostMapping("/generate")
     public String ask(@RequestParam String prompt) {
         return publicNoticeService.chat(prompt);
     }
