@@ -1,6 +1,7 @@
 package ai.incorptech.cmiap;
 
-import ai.incorptech.cmiap.modules.editais.service.EditalAiService;
+import ai.incorptech.cmiap.infrastructure.ai.modules.publicNotices.PublicNoticeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -9,13 +10,10 @@ import org.springframework.stereotype.Component;
  * ELE DEVE SER APAGADO AO FINAL DO PROJETO QUANDO AS ROTAS WEB ESTIVEREM DEFINITIVAS E INTEGRADAS.
  */
 @Component
+@RequiredArgsConstructor
 public class TerminalTestRunner implements CommandLineRunner {
 
-    private final EditalAiService editalAiService;
-
-    public TerminalTestRunner(EditalAiService editalAiService) {
-        this.editalAiService = editalAiService;
-    }
+    private final PublicNoticeService publicNoticeService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -24,7 +22,7 @@ public class TerminalTestRunner implements CommandLineRunner {
         System.out.println("======================================================");
         
         try {
-            String resposta = editalAiService.handleRequest("Quais são as regras mais comuns exigidas na qualificação técnica de um edital de TI?").content();
+            String resposta = publicNoticeService.chat("Quais são as regras mais comuns exigidas na qualificação técnica de um edital de TI?");
             System.out.println("RESPOSTA DA IA:");
             System.out.println(resposta);
         } catch (Exception e) {

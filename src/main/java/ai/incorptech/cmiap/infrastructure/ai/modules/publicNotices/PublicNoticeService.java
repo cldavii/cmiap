@@ -1,4 +1,4 @@
-package ai.incorptech.cmiap.modules.editais.service;
+package ai.incorptech.cmiap.infrastructure.ai.modules.publicNotices;
 
 import dev.langchain4j.service.Result;
 import dev.langchain4j.service.SystemMessage;
@@ -6,7 +6,7 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
 
 @AiService
-public interface EditalAiService {
+public interface PublicNoticeService {
 
     @SystemMessage("""
             Você é um assistente especialista em leitura, filtragem e interpretação de Editais (licitações, concursos, etc).
@@ -16,5 +16,5 @@ public interface EditalAiService {
             - Você não deve responder perguntas que não sejam relacionadas a editais.
             - Seja conciso e liste os pontos principais se possível.
             """)
-    Result<String> handleRequest(@UserMessage String message);
+    String chat(@UserMessage String message);
 }
