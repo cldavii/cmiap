@@ -3,7 +3,11 @@ package ai.incorptech.cmiap.presentation.controller.dto.content;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record ContentGenerationRequestDTO(
+        UUID conversationId,
+
         @NotBlank(message = "O tema é obrigatório")
         @Size(max = 500, message = "O tema deve ter no máximo 500 caracteres")
         String topic,

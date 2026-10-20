@@ -1,3 +1,5 @@
 package ai.incorptech.cmiap.presentation.controller.dto.content;
 
-public record ContentGenerationResponseDTO(String content) {}
+import java.util.UUID;
+
+public record ContentGenerationResponseDTO(UUID conversationId, String content) {}
