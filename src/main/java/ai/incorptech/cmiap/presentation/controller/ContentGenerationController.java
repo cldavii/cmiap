@@ -1,6 +1,6 @@
 package ai.incorptech.cmiap.presentation.controller;
 
-import ai.incorptech.cmiap.infrastructure.ai.modules.contentGenerator.ContentGeneratorService;
+import ai.incorptech.cmiap.application.modules.contentGenerator.ContentGeneratorService;
 import ai.incorptech.cmiap.presentation.controller.dto.content.ContentGenerationRequestDTO;
 import ai.incorptech.cmiap.presentation.controller.dto.content.ContentGenerationResponseDTO;
 import jakarta.validation.Valid;
