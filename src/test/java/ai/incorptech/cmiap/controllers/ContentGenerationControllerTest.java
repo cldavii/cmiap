@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ai.incorptech.cmiap.infrastructure.ai.modules.contentGenerator.ContentGeneratorService;
+import ai.incorptech.cmiap.application.modules.contentGenerator.ContentGeneratorService;
 import ai.incorptech.cmiap.presentation.controller.ContentGenerationController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
