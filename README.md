@@ -55,14 +55,15 @@ src/
 │   │   ├── application/useCase/
 │   │   │   ├── AuthenticateUserService.java
 │   │   │   └── RegisterUserService.java
+│   │   ├── application/modules/contentGenerator/ContentGeneratorService.java
 │   │   ├── domain/
 │   │   │   ├── model/ (User, UserRole)
 │   │   │   ├── repository/UserRepository.java
 │   │   │   └── valueObject/Email.java
 │   │   ├── infrastructure/
-│   │   │   ├── ai/modules/contentGenerator/ContentGeneratorService.java
+│   │   │   ├── ai/memory/ (provider namespaced por agente)
 │   │   │   ├── ai/modules/publicNotices/PublicNoticeService.java
-│   │   │   ├── persistence/ (adapter, entidade e mapper)
+│   │   │   ├── persistence/ (adapter, entidades, store de memória e mapper)
 │   │   │   └── security/ (configuração, filtro e serviço JWT)
 │   │   └── presentation/
 │   │       ├── controller/ (AuthController, ContentGenerationController, PublicNoticeController)
@@ -111,14 +112,18 @@ Exemplo de resposta:
 
 ### Gerar conteúdo
 
-`POST /ai/content/generate` recebe um JSON e retorna `200 OK` com o conteúdo gerado no campo
-`content`. A rota exige autenticação Bearer.
+`POST /ai/content/generate` recebe um JSON e retorna `200 OK` com o identificador da conversa
+(`conversationId`) e o conteúdo gerado. A rota exige autenticação Bearer. Na primeira chamada,
+omita `conversationId`; a API cria um UUID. Para continuar a mesma conversa, envie esse UUID nas
+chamadas seguintes. O ID pertence ao usuário autenticado e não permite acessar a memória de outro
+usuário.
 
 Campos `topic` e `format` são obrigatórios. Os demais são opcionais. Os limites são: tema 500
 caracteres, formato/produto/canal 100, objetivo/público 300 e referências 4.000.
 
 ```json
 {
+    "conversationId": "251b24d9-2686-4e68-aa72-193f3d66fa62",
     "topic": "Como a gestão documental integrada pode apoiar conselhos profissionais",
     "format": "Carrossel para LinkedIn",
     "product": "Incorp Next",
@@ -133,6 +138,7 @@ Exemplo de resposta:
 
 ```json
 {
+    "conversationId": "251b24d9-2686-4e68-aa72-193f3d66fa62",
     "content": "Texto produzido conforme o tema, formato e contexto informados."
 }
 ```
@@ -140,6 +146,53 @@ Exemplo de resposta:
 O campo `content` é texto gerado pela IA. O formato visual do texto não é fixado como HTML ou
 README; informe o formato editorial desejado em `format`. O agente não publica o conteúdo em redes
 sociais e não deve inventar dados ou funcionalidades ausentes das referências fornecidas.
+
+Para apagar a memória da conversa, mantendo a autenticação do mesmo usuário:
+
+```http
+DELETE /ai/content/conversations/251b24d9-2686-4e68-aa72-193f3d66fa62
+Authorization: Bearer <jwt>
+```
+
+### Memória de conversa dos agentes
+
+O agente de conteúdo usa `@MemoryId` e um `ChatMemoryProvider` específico, conectado pelo modo
+explícito de `@AiService`. O provider prefixa toda chave com o identificador fixo do agente
+(`content-generator`); a parte restante identifica usuário e conversa. Portanto, mesmo que duas
+conversas usem o mesmo UUID, usuários diferentes não dividem memória, e agentes diferentes não
+compartilham mensagens.
+
+Exemplo de teste: na primeira chamada, envie o prompt sem `conversationId` e guarde o ID devolvido.
+Depois, envie-o junto a um pedido de continuação:
+
+```bash
+curl -X POST http://localhost:8080/ai/content/generate \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"topic":"Gestão documental integrada","format":"Post para LinkedIn"}'
+```
+
+Use o valor de `conversationId` recebido na primeira resposta:
+
+```bash
+curl -X POST http://localhost:8080/ai/content/generate \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"conversationId":"<conversationId>","topic":"Ajuste a sugestão anterior para gestores","format":"Post para LinkedIn"}'
+```
+
+O `PostgresChatMemoryStore` salva as mensagens serializadas pelo próprio LangChain4j na tabela
+`chat_memories`. Como as demais entidades, ela é criada pelo Hibernate com a configuração atual de
+`ddl-auto`. A memória mantém no máximo 20 mensagens por conversa; isso é uma janela de mensagens,
+não uma contagem de turnos ou tokens. A memória é contexto para o modelo, não substitui um histórico
+completo para exibição ao usuário.
+
+Ao adicionar um agente, declare um bean `AgentChatMemoryProvider` com um namespace único, por
+exemplo `public-notices`, e configure a interface com `@AiService(wiringMode = EXPLICIT,
+chatModel = "googleAiGeminiChatModel", chatMemoryProvider = "publicNoticesChatMemoryProvider")`.
+Passe também em `@MemoryId` um ID de conversa gerado pelo servidor e vinculado ao usuário
+autenticado. Cada agente usa seu próprio provider e, portanto, seu próprio namespace, embora todos
+possam compartilhar o mesmo `PostgresChatMemoryStore`.
 
 ## Configuração e execução
 Pré-requisitos: JDK 25, PostgreSQL e uma chave de API do Google Gemini.
