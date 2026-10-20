@@ -1,4 +1,4 @@
-package ai.incorptech.cmiap.infrastructure.ai.modules.contentGenerator;
+package ai.incorptech.cmiap.application.modules.contentGenerator;
 
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
