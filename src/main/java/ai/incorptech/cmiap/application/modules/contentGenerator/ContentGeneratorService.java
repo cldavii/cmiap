@@ -1,10 +1,15 @@
 package ai.incorptech.cmiap.application.modules.contentGenerator;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
+import dev.langchain4j.service.spring.AiServiceWiringMode;
 
-@AiService
+@AiService(
+        wiringMode = AiServiceWiringMode.EXPLICIT,
+        chatModel = "googleAiGeminiChatModel",
+        chatMemoryProvider = "contentGeneratorChatMemoryProvider")
 public interface ContentGeneratorService {
 
     @SystemMessage("""
@@ -37,5 +42,5 @@ public interface ContentGeneratorService {
                         tiver sido informado, não o invente. Entregue somente o conteúdo solicitado e, quando
                         necessário, uma breve seção de pontos que precisam de confirmação.
             """)
-    String chat(@UserMessage String message);
+    String chat(@MemoryId String memoryId, @UserMessage String message);
 }
