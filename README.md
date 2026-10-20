@@ -11,20 +11,20 @@ nos processos de trabalho da empresa **Incorp Tech**.
 - Agente de leitura e interpretação de editais (em progresso).
 
 ## Tecnologias
-| Tecnologia | Uso |
-| --- | --- |
-| Java 25 | Linguagem e versão configurada no Maven |
-| Spring Boot 4.1.1 | Inicialização e integração da aplicação |
-| Spring MVC | API REST e controllers |
-| Spring Security | Autorização de rotas, filtro JWT e codificação de senhas |
-| Spring Data JPA / Hibernate | Persistência relacional |
-| PostgreSQL | Banco de dados |
-| JJWT 0.13.0 | Criação e validação de tokens JWT |
-| LangChain4j 1.22.0-beta32 | Integração com o modelo de chat Gemini |
-| MapStruct 1.6.3 | Conversão entre modelo de domínio e entidade JPA |
-| Lombok | Redução de código repetitivo |
-| JUnit 5, AssertJ, Mockito e Spring Boot Test | Testes automatizados |
-| Maven Wrapper | Build e execução do projeto |
+| Tecnologia                                   | Uso                                                      |
+|----------------------------------------------|----------------------------------------------------------|
+| Java 25                                      | Linguagem e versão configurada no Maven                  |
+| Spring Boot 4.1.1                            | Inicialização e integração da aplicação                  |
+| Spring MVC                                   | API REST e controllers                                   |
+| Spring Security                              | Autorização de rotas, filtro JWT e codificação de senhas |
+| Spring Data JPA / Hibernate                  | Persistência relacional                                  |
+| PostgreSQL                                   | Banco de dados                                           |
+| JJWT 0.13.0                                  | Criação e validação de tokens JWT                        |
+| LangChain4j 1.22.0-beta32                    | Integração com o modelo de chat Gemini                   |
+| MapStruct 1.6.3                              | Conversão entre modelo de domínio e entidade JPA         |
+| Lombok                                       | Redução de código repetitivo                             |
+| JUnit 5, AssertJ, Mockito e Spring Boot Test | Testes automatizados                                     |
+| Maven Wrapper                                | Build e execução do projeto                              |
 
 ## Arquitetura e padrões
 O código está organizado em camadas com separação inspirada em Domain-Driven Design (DDD) e na 
@@ -141,24 +141,14 @@ O campo `content` é texto gerado pela IA. O formato visual do texto não é fix
 README; informe o formato editorial desejado em `format`. O agente não publica o conteúdo em redes
 sociais e não deve inventar dados ou funcionalidades ausentes das referências fornecidas.
 
-### Consultar editais
-
-`POST /ai/pn/generate` recebe o parâmetro `prompt` e retorna a resposta do agente como texto. A rota
-exige autenticação Bearer.
-
-```text
-POST /ai/pn/generate?prompt=Resuma%20os%20prazos%20deste%20edital
-```
-
 ## Configuração e execução
 Pré-requisitos: JDK 25, PostgreSQL e uma chave de API do Google Gemini.
-
 1. Crie um banco PostgreSQL para a aplicação. O `application.properties` atual aponta para 
-`localhost:5432/cmiap2`.
+`localhost:5432/cmiap`.
 2. Configure credenciais do banco, segredo JWT e chave Gemini por variáveis de ambiente ou 
 configuração externa. As propriedades correspondentes incluem `spring.datasource.username`, 
 `spring.datasource.password`, `jwt.secret.key` e `langchain4j.google-ai-gemini.chat-model.api-key`.
-3. Inicie a aplicação:
+3. Inicie a aplicação.
 
 ## Persistência e cuidados de configuração
 A tabela `users` armazena UUID, nome, e-mail único, senha codificada e perfil. A configuração atual
