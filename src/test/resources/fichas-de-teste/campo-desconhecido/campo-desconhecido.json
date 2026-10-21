@@ -1,0 +1,30 @@
+{
+  "id": "campo-desconhecido",
+  "nome": "Agente de teste",
+  "objetivo": "Testar a leitura das fichas.",
+  "escopo": [
+    "Responder testes"
+  ],
+  "foraDeEscopo": [
+    "Qualquer outra coisa"
+  ],
+  "autonomia": {
+    "autonomo": [
+      "Responder"
+    ],
+    "autonomoComNotificacao": [],
+    "requerAprovacao": [],
+    "requerAdministrador": [],
+    "nunca": [
+      "Agir fora do teste"
+    ]
+  },
+  "formatoDeSaida": [
+    "Texto curto"
+  ],
+  "parametros": [],
+  "fontes": [],
+  "regrasDeDecisão": [
+    "Seguir o teste"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "fonte-inexistente",
+  "nome": "Agente de teste",
+  "objetivo": "Testar a leitura das fichas.",
+  "escopo": [
+    "Responder testes"
+  ],
+  "foraDeEscopo": [
+    "Qualquer outra coisa"
+  ],
+  "autonomia": {
+    "autonomo": [
+      "Responder"
+    ],
+    "autonomoComNotificacao": [],
+    "requerAprovacao": [],
+    "requerAdministrador": [],
+    "nunca": [
+      "Agir fora do teste"
+    ]
+  },
+  "regrasDeDecisao": [
+    "Seguir o teste"
+  ],
+  "formatoDeSaida": [
+    "Texto curto"
+  ],
+  "parametros": [],
+  "fontes": [
+    "arquivo-que-nao-existe.md"
+  ]
+}

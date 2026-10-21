@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class AiIntegrationTest {
 
@@ -62,5 +63,34 @@ class AiIntegrationTest {
 					assertThat(parametros.temperature()).isEqualTo(0.2);
 					assertThat(parametros.maxOutputTokens()).isEqualTo(512);
 				});
+	}
+
+	// O modelo gasta parte desse teto com o raciocinio interno. Com 2048, as respostas
+	// dos agentes vinham cortadas no meio da frase.
+	@Test
+	void usaUmTetoDeTokensQueCabeARespostaDosAgentes() {
+		contextRunner
+				.withPropertyValues("gemini.api-key=chave-de-teste")
+				.run(context -> assertThat(context.getBean(ChatModel.class).defaultRequestParameters().maxOutputTokens())
+						.isEqualTo(8192));
+	}
+
+	// Cada nova tentativa e mais uma chamada na cota gratuita (20 por dia). Por isso,
+	// por padrao, o sistema nao tenta de novo sozinho quando o Gemini falha.
+	// O modelo nao tem metodo para ler esse valor, entao o teste le o campo direto.
+	@Test
+	void naoTentaDeNovoSozinhoQuandoOGeminiFalha() {
+		contextRunner
+				.withPropertyValues("gemini.api-key=chave-de-teste")
+				.run(context -> assertThat(ReflectionTestUtils.getField(context.getBean(ChatModel.class), "maximumRetries"))
+						.isEqualTo(0));
+	}
+
+	@Test
+	void permiteConfigurarONumeroDeTentativas() {
+		contextRunner
+				.withPropertyValues("gemini.api-key=chave-de-teste", "gemini.max-retries=2")
+				.run(context -> assertThat(ReflectionTestUtils.getField(context.getBean(ChatModel.class), "maximumRetries"))
+						.isEqualTo(2));
 	}
 }
