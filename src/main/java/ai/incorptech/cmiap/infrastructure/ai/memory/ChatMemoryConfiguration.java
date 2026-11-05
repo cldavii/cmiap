@@ -9,6 +9,6 @@ public class ChatMemoryConfiguration {
 
     @Bean
     AgentChatMemoryProvider contentGeneratorChatMemoryProvider(ChatMemoryStore chatMemoryStore) {
-        return new AgentChatMemoryProvider("content-generator", chatMemoryStore, 20);
+        return new AgentChatMemoryProvider("content-generator", chatMemoryStore, 100);
     }
 }
