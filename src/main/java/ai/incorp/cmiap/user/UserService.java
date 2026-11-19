@@ -64,6 +64,9 @@ public class UserService {
                 || registrationDto.password() == null || registrationDto.password().isBlank()) {
             throw new UserValidationException("Nome, sobrenome e senha são obrigatórios.");
         }
+        if (registrationDto.department() == null) {
+            throw new UserValidationException("Selecione seu departamento.");
+        }
 
         String normalizedEmail = registrationDto.email().trim().toLowerCase(Locale.ROOT);
         if (userRepository.existsByCpf(registrationDto.cpf())) {
@@ -256,7 +259,14 @@ public class UserService {
     }
 
     private static UserIdentity toIdentity(User user) {
-        return new UserIdentity(user.getId(), user.getName(), user.getSurname(), user.getEmail(), user.getRole());
+        return new UserIdentity(
+                user.getId(),
+                user.getName(),
+                user.getSurname(),
+                user.getEmail(),
+                user.getRole(),
+                user.getDepartment()
+        );
     }
 
     private void ensureCpfIsAvailable(Long cpf, UUID userId) {

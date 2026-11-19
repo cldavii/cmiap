@@ -12,6 +12,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import ai.incorp.cmiap.security.RefreshTokenRepository;
 import ai.incorp.cmiap.user.User;
+import ai.incorp.cmiap.user.UserDepartment;
 import ai.incorp.cmiap.user.UserRegistrationDto;
 import ai.incorp.cmiap.user.UserRepository;
 import ai.incorp.cmiap.user.UserService;
@@ -79,7 +80,7 @@ class SecurityConfigurationTests {
     void currentUserReturnsSafeProfileFromAccessTokenCookie() throws Exception {
         String email = UUID.randomUUID() + "@example.com";
         User user = userService.registerUser(new UserRegistrationDto(
-                "Test", "User", validCpf(), email, "Test-password-123"
+                "Test", "User", validCpf(), email, "Test-password-123", UserDepartment.MARKETING
         ));
 
         try {
@@ -93,6 +94,7 @@ class SecurityConfigurationTests {
                     .andExpect(jsonPath("$.surname").value("User"))
                     .andExpect(jsonPath("$.email").value(email))
                     .andExpect(jsonPath("$.role").value("DEFAULT"))
+                    .andExpect(jsonPath("$.department").value("MARKETING"))
                     .andExpect(jsonPath("$.cpf").doesNotExist())
                     .andExpect(jsonPath("$.password").doesNotExist());
         } finally {
@@ -261,6 +263,23 @@ class SecurityConfigurationTests {
     }
 
     @Test
+    void registrationRequiresDepartment() throws Exception {
+        mockMvc.perform(post("/users/register")
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name":"Test",
+                                  "surname":"User",
+                                  "cpf":52998224725,
+                                  "email":"department-required@example.com",
+                                  "password":"Test-password-123"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void csrfTokenCanBeFetchedAndReturnedOnTheNextRequest() throws Exception {
         CsrfDetails csrf = getCsrfDetails();
 
@@ -277,7 +296,7 @@ class SecurityConfigurationTests {
     void loginRefreshAndLogoutManageHttpOnlyCookiesAndRefreshRevocation() throws Exception {
         String email = UUID.randomUUID() + "@example.com";
         User user = userService.registerUser(new UserRegistrationDto(
-                "Test", "User", validCpf(), email, "Test-password-123"
+                "Test", "User", validCpf(), email, "Test-password-123", UserDepartment.MARKETING
         ));
 
         try {
@@ -286,11 +305,18 @@ class SecurityConfigurationTests {
                             .session(csrf.session())
                             .header(csrf.headerName(), csrf.token())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"email\":\"" + email + "\",\"password\":\"Test-password-123\"}"))
+                            .content("{\"email\":\"" + email + "\",\"password\":\"Test-password-123\",\"department\":\"MARKETING\"}"))
                     .andExpect(status().isNoContent())
                     .andReturn();
             String firstRefreshToken = cookieValue(loginResult, "REFRESH_TOKEN");
             cookieValue(loginResult, "ACCESS_TOKEN");
+
+            mockMvc.perform(post("/auth/login")
+                            .session(csrf.session())
+                            .header(csrf.headerName(), csrf.token())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"password\":\"Test-password-123\",\"department\":\"COMMERCIAL\"}"))
+                    .andExpect(status().isUnauthorized());
 
             MvcResult refreshResult = mockMvc.perform(post("/auth/refresh")
                             .session(csrf.session())

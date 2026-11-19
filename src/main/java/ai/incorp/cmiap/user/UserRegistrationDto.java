@@ -5,5 +5,6 @@ public record UserRegistrationDto(
         String surname,
         Long cpf,
         String email,
-        String password
+        String password,
+        UserDepartment department
 ) {}

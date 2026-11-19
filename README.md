@@ -24,8 +24,8 @@ As solicitações de produção de conteúdo, qualificação de leads e auditori
 
 ## Guia rápido para novos usuários
 
-1. Abra a interface web da Incorp AI fornecida pela equipe responsável e crie uma conta com nome, sobrenome, CPF, e-mail e senha. O cadastro público cria uma conta com papel `DEFAULT`; não é possível escolher privilégios administrativos pelo formulário.
-2. Entre com seu e-mail e senha. A sessão é mantida em cookies protegidos pelo backend; a aplicação não precisa guardar JWT no `localStorage`.
+1. Abra a interface web da Incorp AI fornecida pela equipe responsável e crie uma conta com nome, sobrenome, CPF, e-mail, senha e departamento. O cadastro público cria uma conta com papel `DEFAULT`; não é possível escolher privilégios administrativos pelo formulário.
+2. Entre com seu e-mail, senha e o mesmo departamento escolhido no cadastro. A sessão é mantida em cookies protegidos pelo backend; a aplicação não precisa guardar JWT no `localStorage`.
 3. Escolha um dos agentes disponíveis no catálogo:
    - **Produção de Conteúdo:** descreva o objetivo, o público, o canal, o formato e informações verificadas. Para continuar uma conversa, use o histórico ou abra uma conversa existente.
    - **Prospecção e Qualificação de Leads:** informe o ICP, cadastre leads ou importe um CSV pela interface. Depois, solicite a qualificação de cada lead. Confira a análise antes de decidir próximos passos.
@@ -35,7 +35,7 @@ As solicitações de produção de conteúdo, qualificação de leads e auditori
    - **Tráfego:** envie o briefing, os criativos finalizados, o orçamento e as metas. Inclua os dados de desempenho para acompanhar os indicadores.
 4. Revise qualquer resultado gerado por IA antes de compartilhá-lo, publicá-lo ou usá-lo para tomar decisões.
 
-O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`. A conta criada pelo bootstrap recebe o departamento `MARKETING`.
 
 ## Tecnologias
 
@@ -122,7 +122,7 @@ A API usa JWT em cookies `HttpOnly`, não tokens Bearer guardados pelo frontend.
 
 1. Faça `GET /csrf`, preservando os cookies da resposta. O JSON contém `headerName` e `token`.
 2. Envie o token no cabeçalho indicado em todas as requisições `POST`, `PUT`, `PATCH` e `DELETE`, mantendo os cookies.
-3. Faça login em `POST /auth/login`; o servidor retorna `204 No Content` e define os cookies de sessão.
+3. Faça login em `POST /auth/login` com o departamento gravado no cadastro; o servidor retorna `204 No Content` e define os cookies de sessão.
 
 Exemplo de fluxo com `curl` e `jq` (use dados de teste):
 
@@ -135,13 +135,13 @@ CSRF_TOKEN="$(curl -fsS -c "$COOKIE_JAR" "$API_URL/csrf" | jq -r '.token')"
 curl -sS -o /dev/null -w 'Cadastro: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
   "$API_URL/users/register"
 
 curl -sS -o /dev/null -w 'Login: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  -d '{"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
   "$API_URL/auth/login"
 
 curl -fsS -b "$COOKIE_JAR" "$API_URL/auth/me"
@@ -158,11 +158,11 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | Método | Caminho | Acesso | Descrição |
 | --- | --- | --- | --- |
 | `GET` | `/csrf` | Público | Obtém o nome do cabeçalho e o token CSRF. |
-| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT`. |
-| `POST` | `/auth/login` | Público | Autentica e define cookies JWT. |
+| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT` e departamento obrigatório (`MARKETING` ou `COMMERCIAL`). |
+| `POST` | `/auth/login` | Público | Confere e-mail, senha e departamento da conta antes de definir cookies JWT. |
 | `POST` | `/auth/refresh` | Cookie de refresh | Renova a sessão e gira os tokens. |
 | `POST` | `/auth/logout` | Cookie de refresh | Revoga o refresh token e limpa os cookies. |
-| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual. |
+| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual, incluindo departamento. |
 | `GET`, `PUT`, `PATCH`, `DELETE` | `/users/**` | `ADMINISTRATOR` | Gerencia contas de usuários. |
 
 ### Agentes

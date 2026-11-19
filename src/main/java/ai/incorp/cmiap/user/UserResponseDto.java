@@ -8,6 +8,7 @@ public record UserResponseDto(
         String surname,
         Long cpf,
         String email,
-        UserRole role
+        UserRole role,
+        UserDepartment department
 ) {
 }

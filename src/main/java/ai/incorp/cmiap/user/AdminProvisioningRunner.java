@@ -47,7 +47,7 @@ public class AdminProvisioningRunner implements ApplicationRunner {
         }
 
         User admin = userService.provisionAdministrator(
-                new UserRegistrationDto(name, surname, cpfNumber, email, password)
+                new UserRegistrationDto(name, surname, cpfNumber, email, password, UserDepartment.MARKETING)
         );
         if (admin.getRole() != UserRole.ADMINISTRATOR) {
             throw new IllegalStateException("O provisionamento não resultou em uma conta administradora.");

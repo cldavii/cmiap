@@ -1,6 +1,7 @@
 package ai.incorp.cmiap.security;
 
 import ai.incorp.cmiap.user.UserIdentity;
+import ai.incorp.cmiap.user.UserDepartment;
 import ai.incorp.cmiap.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,8 +46,8 @@ public class AuthService {
 
     @Transactional
     public TokenPair login(AuthRequest request) {
-        if (request == null || request.email() == null || request.password() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail e senha são obrigatórios.");
+        if (request == null || request.email() == null || request.password() == null || request.department() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail, senha e departamento são obrigatórios.");
         }
 
         String email = request.email().trim();
@@ -60,6 +61,12 @@ public class AuthService {
 
         UserIdentity user = userService.findIdentityByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas."));
+        if (user.department() != request.department()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Credenciais ou departamento incorretos."
+            );
+        }
         return createTokenPair(user);
     }
 
