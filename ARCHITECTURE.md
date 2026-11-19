@@ -14,6 +14,8 @@ The backend is organized as a **modular monolith**, grouped by business capabili
 | `agent.social` | Validação e simulação de publicações orgânicas a partir de insumos fornecidos na requisição |
 | `agent.reports` | Indicadores consolidados por produto e canal, com origem, comparação com metas e leitura opcional pelo modelo |
 | `agent.traffic` | Rascunhos de campanhas pagas e indicadores calculados de observações fornecidas pelo usuário |
+| `agent.bids` | Análise de editais de licitação, prazos, riscos contratuais e checklist de habilitação |
+| `agent.commercial` | Apoio comercial estratégico, análise de oportunidades, contorno de objeções e roteiro de pitch |
 
 Each feature package owns its API, application logic, and persistence code. We avoid creating empty `controller`, `service`, `repository`, or `entity` packages shared across unrelated features.
 
