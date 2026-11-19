@@ -10,6 +10,8 @@ The backend is organized as a **modular monolith**, grouped by business capabili
 | `security` | Authentication endpoints, cookies, JWT/CSRF/CORS configuration, and refresh-token lifecycle |
 | `agent.content` | Content-generation use case, conversation history, LangChain4j integration, and its persistence |
 | `agent.leads` | User-scoped lead records, CSV import API, and AI-assisted qualification against a supplied ideal-customer profile |
+| `agent.seo` | Auditoria de SEO e recomendações para páginas HTTPS públicas |
+| `agent.social` | Validação e simulação de publicações orgânicas a partir de insumos fornecidos na requisição |
 
 Each feature package owns its API, application logic, and persistence code. We avoid creating empty `controller`, `service`, `repository`, or `entity` packages shared across unrelated features.
 

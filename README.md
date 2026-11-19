@@ -11,6 +11,7 @@ Esta documentação apresenta o que já está disponível, orienta novos usuári
 | **Produção de conteúdo** | Gerar rascunhos a partir de objetivo, público, canal, formato e informações fornecidas. As conversas e mensagens ficam salvas por usuário e podem ser continuadas. |
 | **Prospecção e qualificação de leads** | Cadastrar leads, importar lotes de até 100 registros via API e avaliar sua aderência ao perfil ideal de cliente (ICP) informado. |
 | **Auditoria de SEO** | Analisar sinais on-page de uma página publicada e obter recomendações editoriais, técnicas e de palavra-chave. |
+| **Mídias Sociais** | Conferir uma publicação orgânica finalizada e simular o agendamento com confirmação humana. |
 | **Contas e autenticação** | Criar conta, iniciar e encerrar sessão com cookies JWT HttpOnly, renovação de sessão e proteção CSRF. |
 
 O sistema não publica conteúdo, não consulta bases externas para enriquecer leads e não entra em contato com eles. As recomendações de IA são auxiliares: revise textos, dados e sugestões antes de usá-los. A auditoria de SEO não garante posicionamento nos buscadores.
@@ -27,6 +28,7 @@ As solicitações de produção de conteúdo, qualificação de leads e auditori
    - **Produção de Conteúdo:** descreva o objetivo, o público, o canal, o formato e informações verificadas. Para continuar uma conversa, use o histórico ou abra uma conversa existente.
    - **Prospecção e Qualificação de Leads:** informe o ICP, cadastre leads ou importe um CSV pela interface. Depois, solicite a qualificação de cada lead. Confira a análise antes de decidir próximos passos.
    - **SEO:** informe uma URL pública HTTPS e, se desejar, uma palavra-chave e contexto adicional. Veja os sinais identificados e as recomendações geradas.
+   - **Mídias Sociais:** forneça a peça final, as regras técnicas de referência e os horários do calendário da plataforma para revisar o plano de publicação.
 4. Revise qualquer resultado gerado por IA antes de compartilhá-lo, publicá-lo ou usá-lo para tomar decisões.
 
 O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
@@ -164,6 +166,7 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | `POST` | `/agents/leads/import` | Importa de 1 a 100 leads em JSON. |
 | `POST` | `/agents/leads/{leadId}/qualify` | Compara um lead do usuário com o ICP informado. |
 | `POST` | `/agents/seo/analyze` | Busca uma página HTTPS pública e retorna a auditoria SEO. |
+| `POST` | `/agents/social/publication-plan` | Valida um plano de publicação orgânica e permite simular seu agendamento. |
 
 ## Exemplos de uso dos agentes
 
@@ -241,6 +244,46 @@ A qualificação retorna uma pontuação de 0 a 100, a classificação (`QUALIFI
 
 O endereço precisa ser HTTPS e apontar para um host público; endereços privados/locais e portas personalizadas são recusados, redirecionamentos não são seguidos e o HTML tem limite de tamanho. A resposta combina sinais observados (título, meta description, headings, imagens e links) com recomendações e uma pontuação orientativa. O servidor envia os dados extraídos e o contexto opcional ao Gemini.
 
+### Mídias Sociais
+
+```json
+{
+  "platform": "LINKEDIN",
+  "format": "POST",
+  "contentReference": "post-piloto",
+  "caption": "Conheça os resultados do piloto.",
+  "technicalRules": {
+    "reference": "Regras fictícias para o piloto interno",
+    "maxCaptionCharacters": 300,
+    "assetRequired": false,
+    "allowedMimeTypes": ["image/png"]
+  },
+  "contentBrandVersion": "v1",
+  "currentBrandVersion": "v1",
+  "plannedAt": "2026-11-27T10:00:00-03:00",
+  "approvedSlots": ["2026-11-27T10:00:00-03:00"],
+  "occupiedSlots": [],
+  "minimumSpacingMinutes": 15,
+  "interactions": [
+    {
+      "type": "COMMENT",
+      "reference": "comentario-1",
+      "url": "https://example.org/comment/1",
+      "pendingReply": true
+    }
+  ],
+  "confirmed": false
+}
+```
+
+- O plano aceita `POST`, `STORY` e `REEL` para `FACEBOOK` e `INSTAGRAM`, e `POST` para `LINKEDIN`.
+- Envie os horários aprovados e ocupados para a plataforma selecionada, com fuso explícito, e informe um horário futuro. A comparação usa o instante e aplica o espaçamento informado em minutos.
+- Havendo mídia, inclua `asset` com `mimeType`, `width`, `height` e `sizeBytes`. É possível incluir `requiredWidth`, `requiredHeight` e `maxAssetBytes` em `technicalRules`. A validação usa metadados declarados, sem baixar arquivos nem consultar regras atuais das redes.
+- A resposta inclui plataforma, formato, horário, referência das regras e lista de pendências (`issues`). O status é `REVIEW_REQUIRED` com pendências, `READY_FOR_CONFIRMATION` quando a revisão passou e `SIMULATED` quando passou com `confirmed: true`.
+- Em `SIMULATED`, `simulation` traz uma referência estável que pode ser registrada no relatório de teste, a referência da peça e a versão da marca. Essa referência identifica a simulação.
+- A lista opcional `interactions` aceita `COMMENT` e `DIRECT_MESSAGE`. O backend devolve em `pendingInteractions` os itens marcados com `pendingReply: true`, com sua referência e link HTTPS opcional para triagem humana.
+- O endpoint executa apenas a simulação a partir da requisição. A agenda, as regras e a versão da marca são fornecidas pelo chamador. O backend não armazena nem publica o conteúdo ou reserva horários.
+
 ## Privacidade e isolamento
 
 - Conversas e leads são vinculados à conta autenticada; a API não permite acessar dados de outra conta.
@@ -257,6 +300,7 @@ src/
 │   │   ├── agent/content/   # Geração de conteúdo e histórico
 │   │   ├── agent/leads/     # Cadastro e qualificação de leads
 │   │   ├── agent/seo/       # Auditoria on-page de SEO
+│   │   ├── agent/social/    # Validação e simulação de publicações orgânicas
 │   │   ├── security/        # Cookies, JWT, CSRF e CORS
 │   │   └── user/            # Contas e administração de usuários
 │   └── resources/
