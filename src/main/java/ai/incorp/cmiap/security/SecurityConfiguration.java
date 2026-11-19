@@ -1,5 +1,9 @@
 package ai.incorp.cmiap.security;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.server.Cookie;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,12 +20,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Locale;
+
 @Configuration
 public class SecurityConfiguration {
 
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> csrfSessionCookie(
+            @Value("${app.security.cookies.secure:true}") boolean secure,
+            @Value("${app.security.cookies.same-site:}") String sameSite
+    ) {
+        Cookie.SameSite policy = StringUtils.hasText(sameSite)
+                ? Cookie.SameSite.valueOf(sameSite.strip().toUpperCase(Locale.ROOT))
+                : (secure ? Cookie.SameSite.NONE : Cookie.SameSite.LAX);
+        return server -> {
+            Cookie cookie = server.getSettings().getSession().getCookie();
+            cookie.setSecure(secure);
+            cookie.setSameSite(policy);
+        };
     }
 
     @Bean

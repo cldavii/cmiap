@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ai.incorp.cmiap.security.RefreshTokenRepository;
 import ai.incorp.cmiap.user.User;
 import ai.incorp.cmiap.user.UserDepartment;
+import ai.incorp.cmiap.user.UserPatchDto;
 import ai.incorp.cmiap.user.UserRegistrationDto;
 import ai.incorp.cmiap.user.UserRepository;
 import ai.incorp.cmiap.user.UserService;
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.Instant;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,6 +86,7 @@ class SecurityConfigurationTests {
         User user = userService.registerUser(new UserRegistrationDto(
                 "Test", "User", validCpf(), email, "Test-password-123", UserDepartment.MARKETING
         ));
+        userService.patchUser(user.getId(), new UserPatchDto(null, null, null, null, UserDepartment.MARKETING));
 
         try {
             mockMvc.perform(get("/auth/me")
@@ -265,7 +268,10 @@ class SecurityConfigurationTests {
     }
 
     @Test
-    void registrationRequiresDepartment() throws Exception {
+    @Transactional
+    void registrationWaitsForDepartmentAssignedByAdministrator() throws Exception {
+        String email = UUID.randomUUID() + "@example.com";
+        String password = "Test-password-123";
         mockMvc.perform(post("/users/register")
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -273,12 +279,36 @@ class SecurityConfigurationTests {
                                 {
                                   "name":"Test",
                                   "surname":"User",
-                                  "cpf":52998224725,
-                                  "email":"department-required@example.com",
-                                  "password":"Test-password-123"
+                                  "cpf":%d,
+                                  "email":"%s",
+                                  "password":"%s",
+                                  "department":"MARKETING"
                                 }
-                                """))
-                .andExpect(status().isBadRequest());
+                                """.formatted(validCpf(), email, password)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("DEFAULT"))
+                .andExpect(jsonPath("$.department").doesNotExist());
+
+        UUID id = userService.findUserByEmail(email).getId();
+        CsrfDetails csrf = getCsrfDetails();
+        String login = "{\"email\":\"%s\",\"password\":\"%s\",\"department\":\"MARKETING\"}".formatted(email, password);
+        mockMvc.perform(post("/auth/login").session(csrf.session())
+                        .header(csrf.headerName(), csrf.token()).contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("Aguarde o administrador definir seu departamento para liberar o acesso."));
+
+        for (String role : List.of("DEFAULT", "ADMINISTRATOR")) {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/users/{id}", id)
+                            .session(csrf.session()).header(csrf.headerName(), csrf.token())
+                            .cookie(new Cookie("ACCESS_TOKEN", accessTokenWithRole(role)))
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"department\":\"MARKETING\"}"))
+                    .andExpect(status().is(role.equals("ADMINISTRATOR") ? 200 : 403));
+        }
+        CsrfDetails assignedLoginCsrf = getCsrfDetails();
+        mockMvc.perform(post("/auth/login").session(assignedLoginCsrf.session())
+                        .header(assignedLoginCsrf.headerName(), assignedLoginCsrf.token())
+                        .contentType(MediaType.APPLICATION_JSON).content(login))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -295,11 +325,48 @@ class SecurityConfigurationTests {
 
     @Test
     @Transactional
+    void administratorProfileAuthenticatesLegacyAdminAndRejectsRegularAccount() throws Exception {
+        String adminEmail = UUID.randomUUID() + "@example.com";
+        String userEmail = UUID.randomUUID() + "@example.com";
+        String password = "Strong-test-password-123!";
+        User admin = userService.provisionAdministrator(new UserRegistrationDto(
+                "Test", "Admin", validCpf(), adminEmail, password, UserDepartment.MARKETING
+        ));
+        admin.setDepartment(null);
+        userRepository.saveAndFlush(admin);
+        userService.registerUser(new UserRegistrationDto(
+                "Test", "User", validCpf(), userEmail, password, UserDepartment.MARKETING
+        ));
+
+        CsrfDetails csrf = getCsrfDetails();
+        String body = "{\"email\":\"%s\",\"password\":\"%s\",\"department\":\"ADMINISTRATOR\"}";
+        mockMvc.perform(post("/auth/login").session(csrf.session())
+                        .header(csrf.headerName(), csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content(body.formatted(userEmail, password)))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/auth/login").session(csrf.session())
+                        .header(csrf.headerName(), csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content(body.formatted(adminEmail, "senha-incorreta")))
+                .andExpect(status().isUnauthorized());
+
+        MvcResult login = mockMvc.perform(post("/auth/login").session(csrf.session())
+                        .header(csrf.headerName(), csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content(body.formatted(adminEmail, password)))
+                .andExpect(status().isNoContent()).andReturn();
+        mockMvc.perform(get("/auth/me").cookie(new Cookie("ACCESS_TOKEN", cookieValue(login, "ACCESS_TOKEN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("ADMINISTRATOR"))
+                .andExpect(jsonPath("$.department").value("MARKETING"));
+    }
+
+    @Test
+    @Transactional
     void loginRefreshAndLogoutManageHttpOnlyCookiesAndRefreshRevocation() throws Exception {
         String email = UUID.randomUUID() + "@example.com";
         User user = userService.registerUser(new UserRegistrationDto(
                 "Test", "User", validCpf(), email, "Test-password-123", UserDepartment.MARKETING
         ));
+        userService.patchUser(user.getId(), new UserPatchDto(null, null, null, null, UserDepartment.MARKETING));
 
         try {
             CsrfDetails csrf = getCsrfDetails();

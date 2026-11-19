@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,11 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void login(@RequestBody AuthRequest request, HttpServletResponse response) {
         setTokenCookies(response, authService.login(request));
+    }
+
+    @ExceptionHandler(AuthService.PendingDepartmentException.class)
+    ProblemDetail pendingDepartment(AuthService.PendingDepartmentException exception) {
+        return exception.getBody();
     }
 
     @PostMapping("/refresh")

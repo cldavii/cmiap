@@ -4,6 +4,7 @@ public record UserPatchDto(
         String name,
         String surname,
         Long cpf,
-        String email
+        String email,
+        UserDepartment department
 ) {
 }
