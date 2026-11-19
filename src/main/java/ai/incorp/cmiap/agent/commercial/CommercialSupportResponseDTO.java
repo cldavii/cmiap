@@ -22,4 +22,3 @@ public record CommercialSupportResponseDTO(
             String recommendedAngle
     ) {}
 }
-

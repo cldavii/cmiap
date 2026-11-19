@@ -19,4 +19,3 @@ public class CommercialSupportController {
         return service.advise(request);
     }
 }
-

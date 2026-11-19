@@ -19,4 +19,3 @@ public class BidsController {
         return service.analyze(request);
     }
 }
-

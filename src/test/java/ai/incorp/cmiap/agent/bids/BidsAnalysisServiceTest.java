@@ -154,4 +154,3 @@ class BidsAnalysisServiceTest {
         verifyNoInteractions(agent);
     }
 }
-

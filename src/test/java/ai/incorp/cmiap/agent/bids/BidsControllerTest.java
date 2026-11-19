@@ -105,4 +105,3 @@ class BidsControllerTest {
                 .andExpect(status().isBadRequest());
     }
 }
-

@@ -1,6 +1,7 @@
 package ai.incorp.cmiap.agent.bids;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
@@ -23,6 +24,7 @@ public class BidsAnalysisService {
     private final ObjectMapper objectMapper;
     private final Clock clock;
 
+    @Autowired
     public BidsAnalysisService(BidsAgent agent, ObjectMapper objectMapper) {
         this(agent, objectMapper, Clock.systemUTC());
     }
@@ -158,4 +160,3 @@ public class BidsAnalysisService {
             BidsAnalysisResponseDTO.RiskLevel nivelRisco
     ) {}
 }
-

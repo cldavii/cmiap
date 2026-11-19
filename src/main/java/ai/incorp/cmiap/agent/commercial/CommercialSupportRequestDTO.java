@@ -44,4 +44,3 @@ public record CommercialSupportRequestDTO(
             @Size(max = 300) String currentAttempt
     ) {}
 }
-

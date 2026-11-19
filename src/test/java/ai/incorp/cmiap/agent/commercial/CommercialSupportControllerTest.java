@@ -94,4 +94,3 @@ class CommercialSupportControllerTest {
                 .andExpect(status().isBadRequest());
     }
 }
-

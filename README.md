@@ -132,7 +132,7 @@ A API usa JWT em cookies `HttpOnly`, não tokens Bearer guardados pelo frontend.
 
 1. Faça `GET /csrf`, preservando os cookies da resposta. O JSON contém `headerName` e `token`.
 2. Envie o token no cabeçalho indicado em todas as requisições `POST`, `PUT`, `PATCH` e `DELETE`, mantendo os cookies.
-3. Faça login em `POST /auth/login`; o servidor retorna `204 No Content` e define os cookies de sessão.
+3. Faça login em `POST /auth/login` com o departamento gravado no cadastro; o servidor retorna `204 No Content` e define os cookies de sessão.
 
 Exemplo de fluxo com `curl` e `jq` (use dados de teste):
 
@@ -145,13 +145,13 @@ CSRF_TOKEN="$(curl -fsS -c "$COOKIE_JAR" "$API_URL/csrf" | jq -r '.token')"
 curl -sS -o /dev/null -w 'Cadastro: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
   "$API_URL/users/register"
 
 curl -sS -o /dev/null -w 'Login: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  -d '{"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
   "$API_URL/auth/login"
 
 curl -fsS -b "$COOKIE_JAR" "$API_URL/auth/me"
@@ -168,11 +168,11 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | Método | Caminho | Acesso | Descrição |
 | --- | --- | --- | --- |
 | `GET` | `/csrf` | Público | Obtém o nome do cabeçalho e o token CSRF. |
-| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT`. |
-| `POST` | `/auth/login` | Público | Autentica e define cookies JWT. |
+| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT` e departamento obrigatório (`MARKETING` ou `COMMERCIAL`). |
+| `POST` | `/auth/login` | Público | Confere e-mail, senha e departamento da conta antes de definir cookies JWT. |
 | `POST` | `/auth/refresh` | Cookie de refresh | Renova a sessão e gira os tokens. |
 | `POST` | `/auth/logout` | Cookie de refresh | Revoga o refresh token e limpa os cookies. |
-| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual. |
+| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual, incluindo departamento. |
 | `GET`, `PUT`, `PATCH`, `DELETE` | `/users/**` | `ADMINISTRATOR` | Gerencia contas de usuários. |
 
 ### Agentes

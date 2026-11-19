@@ -54,4 +54,3 @@ public record BidsAnalysisRequestDTO(
             @Size(max = 200) String remarks
     ) {}
 }
-

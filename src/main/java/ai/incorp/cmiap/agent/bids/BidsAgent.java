@@ -11,4 +11,3 @@ public interface BidsAgent {
     @SystemMessage(fromResource = "/agents/bids.json")
     String analyze(@UserMessage String briefing);
 }
-

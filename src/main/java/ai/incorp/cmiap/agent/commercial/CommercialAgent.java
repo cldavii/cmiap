@@ -11,4 +11,3 @@ public interface CommercialAgent {
     @SystemMessage(fromResource = "/agents/commercial.json")
     String advise(@UserMessage String briefing);
 }
-

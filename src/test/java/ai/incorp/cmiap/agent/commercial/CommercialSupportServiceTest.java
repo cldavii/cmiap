@@ -118,4 +118,3 @@ class CommercialSupportServiceTest {
         assertTrue(ex.getMessage().contains("retornou uma recomendação inválida"));
     }
 }
-
