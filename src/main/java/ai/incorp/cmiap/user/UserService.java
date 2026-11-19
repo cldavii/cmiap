@@ -64,10 +64,6 @@ public class UserService {
                 || registrationDto.password() == null || registrationDto.password().isBlank()) {
             throw new UserValidationException("Nome, sobrenome e senha são obrigatórios.");
         }
-        if (registrationDto.department() == null) {
-            throw new UserValidationException("Selecione seu departamento.");
-        }
-
         String normalizedEmail = registrationDto.email().trim().toLowerCase(Locale.ROOT);
         if (userRepository.existsByCpf(registrationDto.cpf())) {
             throw new UserConflictException("Já existe um usuário cadastrado com este CPF.");
@@ -77,6 +73,7 @@ public class UserService {
         }
 
         User user = userMapper.toEntity(registrationDto);
+        user.setDepartment(null);
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(registrationDto.password()));
         return userRepository.save(user);
@@ -86,6 +83,9 @@ public class UserService {
     public User provisionAdministrator(UserRegistrationDto registrationDto) {
         if (registrationDto == null) {
             throw new UserValidationException("Os dados do administrador são obrigatórios.");
+        }
+        if (registrationDto.department() == null) {
+            throw new UserValidationException("O departamento do administrador é obrigatório.");
         }
         validateName(registrationDto.name(), "Nome");
         validateName(registrationDto.surname(), "Sobrenome");
@@ -149,6 +149,18 @@ public class UserService {
                 .map(UserService::toIdentity);
     }
 
+    @Transactional
+    public Optional<UserIdentity> findAdministratorIdentityForLogin(String email) {
+        return userRepository.findByEmailIgnoreCase(normalizeEmail(email))
+                .filter(user -> user.getRole() == UserRole.ADMINISTRATOR)
+                .map(user -> {
+                    if (user.getDepartment() == null) {
+                        user.setDepartment(UserDepartment.MARKETING);
+                    }
+                    return toIdentity(user);
+                });
+    }
+
     @Transactional(readOnly = true)
     public Optional<UserIdentity> findIdentityById(UUID id) {
         if (id == null) {
@@ -197,7 +209,7 @@ public class UserService {
     @Transactional
     public User patchUser(UUID id, UserPatchDto patchDto) {
         if (patchDto == null || patchDto.name() == null && patchDto.surname() == null
-                && patchDto.cpf() == null && patchDto.email() == null) {
+                && patchDto.cpf() == null && patchDto.email() == null && patchDto.department() == null) {
             throw new UserValidationException("Informe ao menos um campo para atualização.");
         }
 
@@ -221,6 +233,9 @@ public class UserService {
             String normalizedEmail = normalizeEmail(patchDto.email());
             ensureEmailIsAvailable(normalizedEmail, id);
             user.setEmail(normalizedEmail);
+        }
+        if (patchDto.department() != null) {
+            user.setDepartment(patchDto.department());
         }
 
         return userRepository.save(user);

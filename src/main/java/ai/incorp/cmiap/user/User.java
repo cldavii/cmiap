@@ -52,6 +52,5 @@ public class User {
 
     @Setter
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private UserDepartment department;
 }

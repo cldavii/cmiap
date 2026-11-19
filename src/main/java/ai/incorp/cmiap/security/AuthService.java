@@ -1,7 +1,7 @@
 package ai.incorp.cmiap.security;
 
 import ai.incorp.cmiap.user.UserIdentity;
-import ai.incorp.cmiap.user.UserDepartment;
+import ai.incorp.cmiap.user.UserRole;
 import ai.incorp.cmiap.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +47,7 @@ public class AuthService {
     @Transactional
     public TokenPair login(AuthRequest request) {
         if (request == null || request.email() == null || request.password() == null || request.department() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail, senha e departamento são obrigatórios.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail, senha e perfil de acesso são obrigatórios.");
         }
 
         String email = request.email().trim();
@@ -59,15 +59,31 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas.", exception);
         }
 
-        UserIdentity user = userService.findIdentityByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas."));
-        if (user.department() != request.department()) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Credenciais ou departamento incorretos."
-            );
+        var profile = request.department();
+        boolean administratorProfile = profile == AuthRequest.AccessProfile.ADMINISTRATOR;
+        UserIdentity user = (administratorProfile
+                ? userService.findAdministratorIdentityForLogin(email)
+                : userService.findIdentityByEmail(email))
+                .orElseThrow(AuthService::invalidAccessProfile);
+        if (!administratorProfile) {
+            if (user.department() == null && user.role() == UserRole.DEFAULT) {
+                throw new PendingDepartmentException();
+            }
+            if (user.department() == null || !user.department().name().equals(profile.name())) {
+                throw invalidAccessProfile();
+            }
         }
         return createTokenPair(user);
+    }
+
+    private static ResponseStatusException invalidAccessProfile() {
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais ou perfil de acesso incorretos.");
+    }
+
+    static class PendingDepartmentException extends ResponseStatusException {
+        PendingDepartmentException() {
+            super(HttpStatus.FORBIDDEN, "Aguarde o administrador definir seu departamento para liberar o acesso.");
+        }
     }
 
     @Transactional
