@@ -11,6 +11,9 @@ Esta documentação apresenta o que já está disponível, orienta novos usuári
 | **Produção de conteúdo** | Gerar rascunhos a partir de objetivo, público, canal, formato e informações fornecidas. As conversas e mensagens ficam salvas por usuário e podem ser continuadas. |
 | **Prospecção e qualificação de leads** | Cadastrar leads, importar lotes de até 100 registros via API e avaliar sua aderência ao perfil ideal de cliente (ICP) informado. |
 | **Auditoria de SEO** | Analisar sinais on-page de uma página publicada e obter recomendações editoriais, técnicas e de palavra-chave. |
+| **Mídias Sociais** | Conferir uma publicação orgânica finalizada e simular o agendamento com confirmação humana. |
+| **Relatórios e KPIs** | Consolidar indicadores informados por canal, comparar com metas e sinalizar lacunas ou divergências. |
+| **Tráfego** | Estruturar um rascunho de campanha paga, calcular sua performance informada e apontar desvios das metas. |
 | **Contas e autenticação** | Criar conta, iniciar e encerrar sessão com cookies JWT HttpOnly, renovação de sessão e proteção CSRF. |
 
 O sistema não publica conteúdo, não consulta bases externas para enriquecer leads e não entra em contato com eles. As recomendações de IA são auxiliares: revise textos, dados e sugestões antes de usá-los. A auditoria de SEO não garante posicionamento nos buscadores.
@@ -27,6 +30,9 @@ As solicitações de produção de conteúdo, qualificação de leads e auditori
    - **Produção de Conteúdo:** descreva o objetivo, o público, o canal, o formato e informações verificadas. Para continuar uma conversa, use o histórico ou abra uma conversa existente.
    - **Prospecção e Qualificação de Leads:** informe o ICP, cadastre leads ou importe um CSV pela interface. Depois, solicite a qualificação de cada lead. Confira a análise antes de decidir próximos passos.
    - **SEO:** informe uma URL pública HTTPS e, se desejar, uma palavra-chave e contexto adicional. Veja os sinais identificados e as recomendações geradas.
+   - **Mídias Sociais:** forneça a peça final, as regras técnicas de referência e os horários do calendário da plataforma para revisar o plano de publicação.
+   - **Relatórios e KPIs:** informe os dados por produto e período, com a unidade, a origem e a meta de cada indicador.
+   - **Tráfego:** envie o briefing, os criativos finalizados, o orçamento e as metas. Inclua os dados de desempenho para acompanhar os indicadores.
 4. Revise qualquer resultado gerado por IA antes de compartilhá-lo, publicá-lo ou usá-lo para tomar decisões.
 
 O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
@@ -164,6 +170,9 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | `POST` | `/agents/leads/import` | Importa de 1 a 100 leads em JSON. |
 | `POST` | `/agents/leads/{leadId}/qualify` | Compara um lead do usuário com o ICP informado. |
 | `POST` | `/agents/seo/analyze` | Busca uma página HTTPS pública e retorna a auditoria SEO. |
+| `POST` | `/agents/social/publication-plan` | Valida um plano de publicação orgânica e permite simular seu agendamento. |
+| `POST` | `/agents/reports/kpis` | Consolida observações de indicadores e compara os resultados com as metas informadas. |
+| `POST` | `/agents/traffic/campaign-plan` | Simula um rascunho de campanha e calcula indicadores a partir de observações opcionais. |
 
 ## Exemplos de uso dos agentes
 
@@ -241,6 +250,137 @@ A qualificação retorna uma pontuação de 0 a 100, a classificação (`QUALIFI
 
 O endereço precisa ser HTTPS e apontar para um host público; endereços privados/locais e portas personalizadas são recusados, redirecionamentos não são seguidos e o HTML tem limite de tamanho. A resposta combina sinais observados (título, meta description, headings, imagens e links) com recomendações e uma pontuação orientativa. O servidor envia os dados extraídos e o contexto opcional ao Gemini.
 
+### Mídias Sociais
+
+```json
+{
+  "platform": "LINKEDIN",
+  "format": "POST",
+  "contentReference": "post-piloto",
+  "caption": "Conheça os resultados do piloto.",
+  "technicalRules": {
+    "reference": "Regras fictícias para o piloto interno",
+    "maxCaptionCharacters": 300,
+    "assetRequired": false,
+    "allowedMimeTypes": ["image/png"]
+  },
+  "contentBrandVersion": "v1",
+  "currentBrandVersion": "v1",
+  "plannedAt": "2026-11-27T10:00:00-03:00",
+  "approvedSlots": ["2026-11-27T10:00:00-03:00"],
+  "occupiedSlots": [],
+  "minimumSpacingMinutes": 15,
+  "interactions": [
+    {
+      "type": "COMMENT",
+      "reference": "comentario-1",
+      "url": "https://example.org/comment/1",
+      "pendingReply": true
+    }
+  ],
+  "confirmed": false
+}
+```
+
+- O plano aceita `POST`, `STORY` e `REEL` para `FACEBOOK` e `INSTAGRAM`, e `POST` para `LINKEDIN`.
+- Envie os horários aprovados e ocupados para a plataforma selecionada, com fuso explícito, e informe um horário futuro. A comparação usa o instante e aplica o espaçamento informado em minutos.
+- Havendo mídia, inclua `asset` com `mimeType`, `width`, `height` e `sizeBytes`. É possível incluir `requiredWidth`, `requiredHeight` e `maxAssetBytes` em `technicalRules`. A validação usa metadados declarados, sem baixar arquivos nem consultar regras atuais das redes.
+- A resposta inclui plataforma, formato, horário, referência das regras e lista de pendências (`issues`). O status é `REVIEW_REQUIRED` com pendências, `READY_FOR_CONFIRMATION` quando a revisão passou e `SIMULATED` quando passou com `confirmed: true`.
+- Em `SIMULATED`, `simulation` traz uma referência estável que pode ser registrada no relatório de teste, a referência da peça e a versão da marca. Essa referência identifica a simulação.
+- A lista opcional `interactions` aceita `COMMENT` e `DIRECT_MESSAGE`. O backend devolve em `pendingInteractions` os itens marcados com `pendingReply: true`, com sua referência e link HTTPS opcional para triagem humana.
+- O endpoint executa apenas a simulação a partir da requisição. A agenda, as regras e a versão da marca são fornecidas pelo chamador. O backend não armazena nem publica o conteúdo ou reserva horários.
+
+### Relatórios e KPIs
+
+```json
+{
+  "product": "Produto piloto",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-18",
+  "metrics": [
+    {
+      "channel": "PAID",
+      "name": "CPA",
+      "unit": "BRL",
+      "goal": {"value": 12, "direction": "AT_MOST"},
+      "observations": [{"source": "TRAFFIC_AGENT", "reference": "pacote-trafego-1", "value": 10.20}]
+    },
+    {
+      "channel": "ORGANIC",
+      "name": "Impressões",
+      "unit": "impressões",
+      "observations": [],
+      "contextReferences": ["social-sim-identificador-do-piloto"]
+    }
+  ],
+  "includeNarrative": false
+}
+```
+
+- Envie cada indicador uma vez por canal. Todas as observações devem referir-se ao produto, período e unidade do indicador e representar, cada uma, o valor consolidado do mesmo recorte. O endpoint não soma observações sobrepostas.
+- Use `META`, `GOOGLE` ou `LINKEDIN` para `ORGANIC`, `TRAFFIC_AGENT` para `PAID`, `LEADS_AGENT` para `LEADS`, `BIDS_AGENT` para `BIDS` e `SEO_AGENT` para `SEO`. `contextReferences` aceita referências de apoio, como um log de publicação, sem tratá-las como observações de valor.
+- A resposta preserva as observações e suas referências. Indicadores sem observação recebem `MISSING`. Valores divergentes recebem `CONFLICT`. Em ambos, o campo `value` é nulo. Indicadores com valor e sem meta recebem `NO_GOAL`.
+- Quando existe uma meta, a API usa comparação decimal sem arredondamento adicional. `AT_MOST` indica um limite máximo, e `AT_LEAST` indica um mínimo. Os estados são `GOAL_MET` e `GOAL_NOT_MET`.
+- Com `includeNarrative: true`, o modelo recebe os indicadores consolidados e suas referências para produzir uma leitura opcional, devolvida em `narrative`. Use dados fictícios no piloto. Os estados e números oficiais da resposta são calculados pelo backend. A API usa somente os dados da requisição, sem coleta externa ou armazenamento.
+- Se o modelo estiver indisponível, repita a mesma requisição com `includeNarrative: false` para receber os indicadores e a comparação com metas.
+
+### Tráfego
+
+```json
+{
+  "campaignReference": "campanha-piloto",
+  "product": "Produto piloto",
+  "platform": "META_ADS",
+  "objective": "Gerar pedidos de demonstração",
+  "audience": "Equipes de tecnologia no Recife",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-18",
+  "budget": {"currency": "BRL", "planned": 50, "ceiling": 60},
+  "goals": {"maxCpa": 10, "minRoas": 3},
+  "creatives": [{"reference": "peca-1", "validationReference": "revisao-1", "compatible": true}],
+  "observation": {
+    "reference": "campanha-piloto-exportacao-01",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-18",
+    "impressions": 2000,
+    "reach": 900,
+    "clicks": 100,
+    "conversions": 6,
+    "spend": 60,
+    "attributedRevenue": 150
+  }
+}
+```
+
+- Plataformas aceitas: `META_ADS`, `GOOGLE_ADS`, `LINKEDIN_ADS`. A moeda deve usar o código ISO de três letras. O briefing precisa de pelo menos uma meta de CPA ou ROAS, além dos criativos revisados previamente para a plataforma.
+- O orçamento acima do teto, metas ausentes ou criativos incompatíveis produzem `REVIEW_REQUIRED` com os motivos em `issues`. Com `SIMULATED_DRAFT`, o modelo retorna em `strategy` uma proposta de segmentação, lances, distribuição de orçamento e teste A/B baseada no briefing. A API gera apenas recomendações. Ela não acessa plataformas de anúncios, mexe no orçamento, registra leads, publica, ativa ou pausa campanhas.
+- `observation` é opcional. Se presente, informe uma referência que identifique a campanha e a amostra e um período contido no período da campanha. Os contadores aceitam até 16 dígitos. A API devolve em `performance` os indicadores informados e os calculados. CPA é gasto dividido por conversões, ROAS é receita atribuída dividida por gasto, CPC é gasto dividido por cliques e CTR é cliques divididos por impressões, multiplicado por 100. Operando ausente ou denominador zero deixa o valor nulo com estado `MISSING`.
+- Valores derivados são arredondados para seis casas decimais, com empate para cima, antes da comparação com a meta. Quando o gasto atinge o teto informado, a resposta inclui um alerta. A amostra é fornecida pelo chamador e o endpoint não infere tendências de desempenho.
+
+#### Levar o desempenho de Tráfego a Relatórios e KPIs
+
+Para usar o CPA do exemplo acima, envie para `POST /agents/reports/kpis` o produto da resposta de Tráfego, as datas de `performance` e o indicador no canal `PAID`. Copie `name`, `unit` e `goal` do indicador e componha a observação usando `performance.source`, `performance.reference` e o `value` do indicador:
+
+```json
+{
+  "product": "Produto piloto",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-18",
+  "metrics": [
+    {
+      "channel": "PAID",
+      "name": "CPA",
+      "unit": "BRL",
+      "goal": {"value": 10, "direction": "AT_MOST"},
+      "observations": [{"source": "TRAFFIC_AGENT", "reference": "campanha-piloto-exportacao-01", "value": 10.000000}]
+    }
+  ],
+  "includeNarrative": false
+}
+```
+
+O indicador recebe `GOAL_MET`. Se o indicador vier sem valor no pacote de Tráfego, envie `observations: []` para preservar a lacuna.
+
 ## Privacidade e isolamento
 
 - Conversas e leads são vinculados à conta autenticada; a API não permite acessar dados de outra conta.
@@ -257,6 +397,9 @@ src/
 │   │   ├── agent/content/   # Geração de conteúdo e histórico
 │   │   ├── agent/leads/     # Cadastro e qualificação de leads
 │   │   ├── agent/seo/       # Auditoria on-page de SEO
+│   │   ├── agent/social/    # Validação e simulação de publicações orgânicas
+│   │   ├── agent/reports/   # Consolidação de indicadores e leitura de resultados
+│   │   ├── agent/traffic/   # Planejamento e desempenho de campanhas pagas
 │   │   ├── security/        # Cookies, JWT, CSRF e CORS
 │   │   └── user/            # Contas e administração de usuários
 │   └── resources/
