@@ -14,6 +14,8 @@ Esta documentação apresenta o que já está disponível, orienta novos usuári
 | **Mídias Sociais** | Conferir uma publicação orgânica finalizada e simular o agendamento com confirmação humana. |
 | **Relatórios e KPIs** | Consolidar indicadores informados por canal, comparar com metas e sinalizar lacunas ou divergências. |
 | **Tráfego** | Estruturar um rascunho de campanha paga, calcular sua performance informada e apontar desvios das metas. |
+| **Editais e Licitações** | Analisar editais de compras públicas, prazos, riscos contratuais, checklist de habilitação e recomendações para propostas. |
+| **Apoio Comercial** | Apoiar estratégias de vendas, diagnóstico de objeções, diferenciais frente a concorrentes e direcionamento de fechamento. |
 | **Contas e autenticação** | Criar conta, iniciar e encerrar sessão com cookies JWT HttpOnly, renovação de sessão e proteção CSRF. |
 
 O sistema não publica conteúdo, não consulta bases externas para enriquecer leads e não entra em contato com eles. As recomendações de IA são auxiliares: revise textos, dados e sugestões antes de usá-los. A auditoria de SEO não garante posicionamento nos buscadores.
@@ -33,6 +35,8 @@ As solicitações de produção de conteúdo, qualificação de leads e auditori
    - **Mídias Sociais:** forneça a peça final, as regras técnicas de referência e os horários do calendário da plataforma para revisar o plano de publicação.
    - **Relatórios e KPIs:** informe os dados por produto e período, com a unidade, a origem e a meta de cada indicador.
    - **Tráfego:** envie o briefing, os criativos finalizados, o orçamento e as metas. Inclua os dados de desempenho para acompanhar os indicadores.
+   - **Editais e Licitações:** informe o identificador do edital, órgão, modalidade, prazos, orçamento e documentos de habilitação para receber checklist e parecer de conformidade e riscos.
+   - **Apoio Comercial:** informe a oportunidade, cliente, dores mapeadas, concorrentes e objeções para gerar estratégia consultiva de pitch e contorno.
 4. Revise qualquer resultado gerado por IA antes de compartilhá-lo, publicá-lo ou usá-lo para tomar decisões.
 
 O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`. A conta criada pelo bootstrap recebe o departamento `MARKETING`.
@@ -112,6 +116,12 @@ A aplicação Spring Boot usa a porta `8080` por padrão. Para compilar e execut
 ./mvnw test
 ```
 
+Para executar apenas a suíte isolada de serviços, regras de negócio e controllers dos agentes (sem necessidade de banco de dados ou chave de API externa ativa):
+
+```bash
+./mvnw test -Dtest="*ServiceTest,*StoreTest,*FetcherTest,*ControllerTest"
+```
+
 No Windows, use `mvnw.cmd` no lugar de `./mvnw`.
 
 O Hibernate está configurado para atualizar o esquema (`ddl-auto=update`) nesta configuração do projeto. Em produção, revise a estratégia de migração do banco e o gerenciamento de esquema antes de implantar.
@@ -122,7 +132,7 @@ A API usa JWT em cookies `HttpOnly`, não tokens Bearer guardados pelo frontend.
 
 1. Faça `GET /csrf`, preservando os cookies da resposta. O JSON contém `headerName` e `token`.
 2. Envie o token no cabeçalho indicado em todas as requisições `POST`, `PUT`, `PATCH` e `DELETE`, mantendo os cookies.
-3. Faça login em `POST /auth/login` com o departamento gravado no cadastro; o servidor retorna `204 No Content` e define os cookies de sessão.
+3. Faça login em `POST /auth/login`; o servidor retorna `204 No Content` e define os cookies de sessão.
 
 Exemplo de fluxo com `curl` e `jq` (use dados de teste):
 
@@ -135,13 +145,13 @@ CSRF_TOKEN="$(curl -fsS -c "$COOKIE_JAR" "$API_URL/csrf" | jq -r '.token')"
 curl -sS -o /dev/null -w 'Cadastro: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
+  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>"}' \
   "$API_URL/users/register"
 
 curl -sS -o /dev/null -w 'Login: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"email":"ana@example.com","password":"<senha-de-teste>","department":"MARKETING"}' \
+  -d '{"email":"ana@example.com","password":"<senha-de-teste>"}' \
   "$API_URL/auth/login"
 
 curl -fsS -b "$COOKIE_JAR" "$API_URL/auth/me"
@@ -158,11 +168,11 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | Método | Caminho | Acesso | Descrição |
 | --- | --- | --- | --- |
 | `GET` | `/csrf` | Público | Obtém o nome do cabeçalho e o token CSRF. |
-| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT` e departamento obrigatório (`MARKETING` ou `COMMERCIAL`). |
-| `POST` | `/auth/login` | Público | Confere e-mail, senha e departamento da conta antes de definir cookies JWT. |
+| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT`. |
+| `POST` | `/auth/login` | Público | Autentica e define cookies JWT. |
 | `POST` | `/auth/refresh` | Cookie de refresh | Renova a sessão e gira os tokens. |
 | `POST` | `/auth/logout` | Cookie de refresh | Revoga o refresh token e limpa os cookies. |
-| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual, incluindo departamento. |
+| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual. |
 | `GET`, `PUT`, `PATCH`, `DELETE` | `/users/**` | `ADMINISTRATOR` | Gerencia contas de usuários. |
 
 ### Agentes
@@ -388,6 +398,96 @@ Para usar o CPA do exemplo acima, envie para `POST /agents/reports/kpis` o produ
 
 O indicador recebe `GOAL_MET`. Se o indicador vier sem valor no pacote de Tráfego, envie `observations: []` para preservar a lacuna.
 
+### Editais e Licitações
+
+```json
+{
+  "bidReference": "PE-42/2026",
+  "issuingBody": "Ministério da Gestão e Inovação",
+  "modality": "PREGAO_ELETRONICO",
+  "objectDescription": "Contratação de plataforma em nuvem para inteligência e automação de processos.",
+  "submissionDeadline": "2026-12-05",
+  "openingDate": "2026-12-05",
+  "budget": {
+    "currency": "BRL",
+    "estimatedValue": 350000.00,
+    "maxAcceptableValue": 400000.00
+  },
+  "technicalRequirements": [
+    "Atestado de capacidade técnica para sustentação de microsserviços em nuvem",
+    "Certificação ISO 27001 para o ambiente de hospedagem"
+  ],
+  "qualificationDocuments": [
+    {
+      "documentName": "Contrato Social consolidado",
+      "type": "HABILITACAO_JURIDICA",
+      "provided": true
+    },
+    {
+      "documentName": "CND Federal e Previdenciária",
+      "type": "REGULARIDADE_FISCAL_TRABALHISTA",
+      "provided": true
+    },
+    {
+      "documentName": "Balanço Patrimonial do último exercício",
+      "type": "QUALIFICACAO_ECONOMICO_FINANCEIRA",
+      "provided": false,
+      "remarks": "Pendente de assinatura contábil"
+    }
+  ],
+  "noticeSummary": "Pregão com critério de julgamento menor preço por item. Exigência de amostra em até 5 dias úteis."
+}
+```
+
+- Endpoint: `POST /agents/bids/analyze`.
+- Modalidades aceitas: `PREGAO_ELETRONICO`, `CONCORRENCIA`, `DISPENSA`, `INEXIGIBILIDADE`, `DIALOGO_COMPETITIVO`, `CONCURSO`, `OUTROS`.
+- Tipos de documento: `HABILITACAO_JURIDICA`, `REGULARIDADE_FISCAL_TRABALHISTA`, `QUALIFICACAO_TECNICA`, `QUALIFICACAO_ECONOMICO_FINANCEIRA`.
+- O prazo de submissão não pode ser posterior à data de abertura. Se o prazo estiver expirado ou o valor estimado superar o teto, o edital recebe `HIGH_RISK`.
+- Com `VIABLE` ou `REVIEW_REQUIRED`, a API retorna um checklist estruturado (`COMPLIANT`, `PENDING`, `MISSING`) e parecer do modelo com pontos de atenção, cláusulas de risco e recomendações para a proposta.
+
+### Apoio Comercial
+
+```json
+{
+  "opportunityReference": "OPP-2026-089",
+  "clientName": "Grupo Varejo Brasil",
+  "clientSegment": "Varejo Omnichannel",
+  "decisionMakers": "Diretora de E-commerce e Gerente de TI",
+  "productOffered": "Plataforma de Personalização de Vitrines",
+  "stage": "NEGOTIATION",
+  "dealValue": {
+    "currency": "BRL",
+    "amount": 85000.00
+  },
+  "painPoints": [
+    "Taxa de conversão estagnada no mobile",
+    "Dificuldade de integrar catálogo com o ERP legado"
+  ],
+  "competitors": [
+    "Concorrente Alfa",
+    "Solução interna legada"
+  ],
+  "objections": [
+    {
+      "category": "Preço",
+      "description": "Cliente alega que o setup está 20% acima do orçamento previsto para este ano.",
+      "currentAttempt": "Oferecemos parcelamento do setup em 3 vezes."
+    },
+    {
+      "category": "Prazo de Implantação",
+      "description": "Receio de impactar as vendas da Black Friday durante a virada.",
+      "currentAttempt": "Apresentamos proposta de implementação faseada."
+    }
+  ],
+  "notes": "Cliente demonstrou alto interesse no piloto mas necessita de validação do CFO."
+}
+```
+
+- Endpoint: `POST /agents/commercial/advise`.
+- Estágios aceitos: `PROSPECTING`, `DISCOVERY`, `PROPOSAL`, `NEGOTIATION`, `CLOSING`.
+- Objeções em aberto durante a fase `CLOSING` produzem status `REVIEW_REQUIRED`.
+- Retorna direcionamento de valor (`commercialStrategy`) com narrativa de pitch, diferenciais frente a concorrentes, perguntas de avanço e sugestão de tratamento para cada categoria de objeção.
+
 ## Privacidade e isolamento
 
 - Conversas e leads são vinculados à conta autenticada; a API não permite acessar dados de outra conta.
@@ -401,14 +501,16 @@ O indicador recebe `GOAL_MET`. Se o indicador vier sem valor no pacote de Tráfe
 src/
 ├── main/
 │   ├── java/ai/incorp/cmiap/
-│   │   ├── agent/content/   # Geração de conteúdo e histórico
-│   │   ├── agent/leads/     # Cadastro e qualificação de leads
-│   │   ├── agent/seo/       # Auditoria on-page de SEO
-│   │   ├── agent/social/    # Validação e simulação de publicações orgânicas
-│   │   ├── agent/reports/   # Consolidação de indicadores e leitura de resultados
-│   │   ├── agent/traffic/   # Planejamento e desempenho de campanhas pagas
-│   │   ├── security/        # Cookies, JWT, CSRF e CORS
-│   │   └── user/            # Contas e administração de usuários
+│   │   ├── agent/content/    # Geração de conteúdo e histórico
+│   │   ├── agent/leads/      # Cadastro e qualificação de leads
+│   │   ├── agent/seo/        # Auditoria on-page de SEO
+│   │   ├── agent/social/     # Validação e simulação de publicações orgânicas
+│   │   ├── agent/reports/    # Consolidação de indicadores e leitura de resultados
+│   │   ├── agent/traffic/    # Planejamento e desempenho de campanhas pagas
+│   │   ├── agent/bids/       # Análise de editais e licitações públicas
+│   │   ├── agent/commercial/ # Estratégia e apoio comercial a vendas
+│   │   ├── security/         # Cookies, JWT, CSRF e CORS
+│   │   └── user/             # Contas e administração de usuários
 │   └── resources/
 └── test/
 ```
