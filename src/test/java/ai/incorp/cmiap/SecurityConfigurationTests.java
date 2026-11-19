@@ -63,6 +63,8 @@ class SecurityConfigurationTests {
     @DynamicPropertySource
     static void registerSecurityProperties(DynamicPropertyRegistry registry) {
         registry.add("app.security.jwt.secret", () -> TEST_JWT_SECRET);
+        registry.add("app.security.cookies.secure", () -> "true");
+        registry.add("app.security.cookies.same-site", () -> "");
         registry.add("langchain4j.google-ai-gemini.chat-model.api-key", () -> "test-gemini-api-key");
         registry.add("langchain4j.google-ai-gemini.chat-model.model-name", () -> "gemini-2.5-flash");
     }
@@ -308,6 +310,7 @@ class SecurityConfigurationTests {
                             .content("{\"email\":\"" + email + "\",\"password\":\"Test-password-123\",\"department\":\"MARKETING\"}"))
                     .andExpect(status().isNoContent())
                     .andReturn();
+            assertTokenCookiesHaveCrossSiteAttributes(loginResult);
             String firstRefreshToken = cookieValue(loginResult, "REFRESH_TOKEN");
             cookieValue(loginResult, "ACCESS_TOKEN");
 
@@ -365,6 +368,17 @@ class SecurityConfigurationTests {
                 .map(header -> header.substring(prefix.length()).split(";", 2)[0])
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Cookie " + cookieName + " was not set."));
+    }
+
+    private void assertTokenCookiesHaveCrossSiteAttributes(MvcResult result) {
+        for (String cookieName : new String[]{"ACCESS_TOKEN", "REFRESH_TOKEN"}) {
+            String cookie = result.getResponse().getHeaders("Set-Cookie").stream()
+                    .filter(header -> header.startsWith(cookieName + "="))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("Cookie " + cookieName + " was not set."));
+            org.junit.jupiter.api.Assertions.assertTrue(cookie.contains("Secure"));
+            org.junit.jupiter.api.Assertions.assertTrue(cookie.contains("SameSite=None"));
+        }
     }
 
     private long validCpf() {

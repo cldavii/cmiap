@@ -26,7 +26,7 @@ public class AuthController {
     @Value("${app.security.cookies.secure:true}")
     private boolean secureCookies;
 
-    @Value("${app.security.cookies.same-site:Lax}")
+    @Value("${app.security.cookies.same-site:}")
     private String sameSite;
 
     @PostMapping("/login")
@@ -64,7 +64,7 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from("ACCESS_TOKEN", tokens.accessToken())
                 .httpOnly(true)
                 .secure(secureCookies)
-                .sameSite(sameSite)
+                .sameSite(cookieSameSite())
                 .path("/")
                 .maxAge(tokens.accessExpiresAt().getEpochSecond() - java.time.Instant.now().getEpochSecond())
                 .build()
@@ -72,7 +72,7 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from("REFRESH_TOKEN", tokens.refreshToken())
                 .httpOnly(true)
                 .secure(secureCookies)
-                .sameSite(sameSite)
+                .sameSite(cookieSameSite())
                 .path("/auth")
                 .maxAge(tokens.refreshTokenTtl())
                 .build()
@@ -83,10 +83,17 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(name, "")
                 .httpOnly(true)
                 .secure(secureCookies)
-                .sameSite(sameSite)
+                .sameSite(cookieSameSite())
                 .path(path)
                 .maxAge(0)
                 .build()
                 .toString());
+    }
+
+    private String cookieSameSite() {
+        if (sameSite != null && !sameSite.isBlank()) {
+            return sameSite;
+        }
+        return secureCookies ? "None" : "Lax";
     }
 }
