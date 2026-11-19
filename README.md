@@ -76,7 +76,8 @@ Variáveis opcionais:
 | Variável | Padrão / finalidade |
 | --- | --- |
 | `COOKIE_SECURE` | `true` por padrão. Mantenha `true` quando houver HTTPS; use `false` somente para desenvolvimento local via HTTP. |
-| `CORS_ALLOWED_ORIGINS` | Origens exatas permitidas, separadas por vírgula. O padrão é `http://localhost:5173`. |
+| `CORS_ALLOWED_ORIGINS` | Origens exatas permitidas, separadas por vírgula. Inclui `http://localhost:5173` e `https://incorp-front.onrender.com` por padrão. |
+| `COOKIE_SAME_SITE` | Atributo `SameSite` dos cookies. Use `None` para o frontend publicado em outro site; o padrão local é `Lax`. |
 
 Exemplo de configuração no terminal Linux/macOS (substitua os valores pelos da sua máquina e não os compartilhe):
 
@@ -95,7 +96,7 @@ export COOKIE_SECURE=false
 
 Crie um serviço Web ligado a este repositório, selecione o runtime **Docker** e mantenha o diretório raiz padrão. O Render usará o `Dockerfile` da raiz; a imagem lê a porta fornecida pelo Render (`PORT`) e inicia a API nessa porta.
 
-Adicione no ambiente do serviço as variáveis obrigatórias listadas acima (`PG_URL`, `PG_USERNAME`, `PG_PASSWORD`, `JWT_SECRET` e `GEMINI_API_KEY`). Para o PostgreSQL do Render, configure `PG_URL` no formato JDBC `jdbc:postgresql://<host-interno>:<porta>/<banco>` e informe usuário e senha nas variáveis correspondentes. Mantenha `COOKIE_SECURE=true` e configure `CORS_ALLOWED_ORIGINS` com a origem exata do frontend publicado.
+Adicione no ambiente do serviço as variáveis obrigatórias listadas acima (`PG_URL`, `PG_USERNAME`, `PG_PASSWORD`, `JWT_SECRET` e `GEMINI_API_KEY`). Para o PostgreSQL do Render, configure `PG_URL` no formato JDBC `jdbc:postgresql://<host-interno>:<porta>/<banco>` e informe usuário e senha nas variáveis correspondentes. Mantenha `COOKIE_SECURE=true` e configure `CORS_ALLOWED_ORIGINS=https://incorp-front.onrender.com` e `COOKIE_SAME_SITE=None`. Se o domínio do frontend mudar, substitua a origem pela URL pública exata, incluindo `https://`.
 
 ### Iniciar e testar
 

@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -100,13 +101,22 @@ class SecurityConfigurationTests {
     }
 
     @Test
-    void corsRejectsOriginsUntilOneIsConfigured() throws Exception {
+    void corsRejectsOriginsNotInTheAllowlist() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.options("/auth/login")
                         .header("Origin", "https://frontend.example")
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(status().isForbidden())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .header().doesNotExist("Access-Control-Allow-Origin"));
+    }
+
+    @Test
+    void corsAllowsThePublishedFrontendOrigin() throws Exception {
+        mockMvc.perform(get("/csrf")
+                        .header("Origin", "https://incorp-front.onrender.com"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://incorp-front.onrender.com"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
 
     @Test
