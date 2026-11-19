@@ -1,215 +1,270 @@
-# CMIAP - Sistema de Agentes Inteligentes
+# CMIAP — API de agentes de inteligência artificial
 
-Este é um projeto visa o desenvolvimento de uma plataforma de Agentes Inteligentes para melhorias
-nos processos de trabalho da empresa **Incorp Tech**.
+O **CMIAP** é o backend da plataforma Incorp AI: uma API REST que reúne agentes de IA para apoiar atividades de Marketing e Comercial. O sistema centraliza autenticação, histórico e dados dos usuários, enquanto mantém cada funcionalidade organizada em seu próprio módulo.
 
-## Funcionalidades implementadas
+Esta documentação apresenta o que já está disponível, orienta novos usuários nos primeiros passos e explica como executar e integrar a API. A interface web é mantida separadamente em [C-26hub/Incorp_front](https://github.com/C-26hub/Incorp_front).
 
-- Cadastro de usuário;
-- Login de usuários;
-- Agente de Produção de Conteúdo, com geração orientada por tema, formato, produto, canal, objetivo, público e referências;
-- Agente de leitura e interpretação de editais (em progresso).
+## Funcionalidades disponíveis
+
+| Funcionalidade | O que permite fazer |
+| --- | --- |
+| **Produção de conteúdo** | Gerar rascunhos a partir de objetivo, público, canal, formato e informações fornecidas. As conversas e mensagens ficam salvas por usuário e podem ser continuadas. |
+| **Prospecção e qualificação de leads** | Cadastrar leads, importar lotes de até 100 registros via API e avaliar sua aderência ao perfil ideal de cliente (ICP) informado. |
+| **Auditoria de SEO** | Analisar sinais on-page de uma página publicada e obter recomendações editoriais, técnicas e de palavra-chave. |
+| **Contas e autenticação** | Criar conta, iniciar e encerrar sessão com cookies JWT HttpOnly, renovação de sessão e proteção CSRF. |
+
+O sistema não publica conteúdo, não consulta bases externas para enriquecer leads e não entra em contato com eles. As recomendações de IA são auxiliares: revise textos, dados e sugestões antes de usá-los. A auditoria de SEO não garante posicionamento nos buscadores.
+
+### Uso responsável dos dados
+
+As solicitações de produção de conteúdo, qualificação de leads e auditoria SEO são processadas pelo Gemini. Não envie informações pessoais ou confidenciais sem autorização e sem verificar as políticas aplicáveis à sua organização. Na qualificação de leads, o backend envia ao modelo o ICP e dados como empresa, cargo, setor, porte, localização e observações; nome e dados de contato não são incluídos no contexto da IA. Na auditoria SEO, o HTML extraído da URL e o texto complementar são enviados ao modelo.
+
+## Guia rápido para novos usuários
+
+1. Abra a interface web da Incorp AI fornecida pela equipe responsável e crie uma conta com nome, sobrenome, CPF, e-mail e senha. O cadastro público cria uma conta com papel `DEFAULT`; não é possível escolher privilégios administrativos pelo formulário.
+2. Entre com seu e-mail e senha. A sessão é mantida em cookies protegidos pelo backend; a aplicação não precisa guardar JWT no `localStorage`.
+3. Escolha um dos agentes disponíveis no catálogo:
+   - **Produção de Conteúdo:** descreva o objetivo, o público, o canal, o formato e informações verificadas. Para continuar uma conversa, use o histórico ou abra uma conversa existente.
+   - **Prospecção e Qualificação de Leads:** informe o ICP, cadastre leads ou importe um CSV pela interface. Depois, solicite a qualificação de cada lead. Confira a análise antes de decidir próximos passos.
+   - **SEO:** informe uma URL pública HTTPS e, se desejar, uma palavra-chave e contexto adicional. Veja os sinais identificados e as recomendações geradas.
+4. Revise qualquer resultado gerado por IA antes de compartilhá-lo, publicá-lo ou usá-lo para tomar decisões.
+
+O acesso administrativo a operações de gerenciamento de usuários é reservado a contas `ADMINISTRATOR`. O cadastro comum não cria administradores; a equipe responsável deve provisionar a primeira conta em uma execução não-web, habilitando temporariamente o bootstrap com `APP_SECURITY_BOOTSTRAP_ADMIN_ENABLED=true` e definindo as variáveis `ADMIN_NAME`, `ADMIN_SURNAME`, `ADMIN_CPF`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
 
 ## Tecnologias
-| Tecnologia                                   | Uso                                                      |
-|----------------------------------------------|----------------------------------------------------------|
-| Java 25                                      | Linguagem e versão configurada no Maven                  |
-| Spring Boot 4.1.1                            | Inicialização e integração da aplicação                  |
-| Spring MVC                                   | API REST e controllers                                   |
-| Spring Security                              | Autorização de rotas, filtro JWT e codificação de senhas |
-| Spring Data JPA / Hibernate                  | Persistência relacional                                  |
-| PostgreSQL                                   | Banco de dados                                           |
-| JJWT 0.13.0                                  | Criação e validação de tokens JWT                        |
-| LangChain4j 1.22.0-beta32                    | Integração com o modelo de chat Gemini                   |
-| MapStruct 1.6.3                              | Conversão entre modelo de domínio e entidade JPA         |
-| Lombok                                       | Redução de código repetitivo                             |
-| JUnit 5, AssertJ, Mockito e Spring Boot Test | Testes automatizados                                     |
-| Maven Wrapper                                | Build e execução do projeto                              |
 
-## Arquitetura e padrões
-O código está organizado em camadas com separação inspirada em Domain-Driven Design (DDD) e na 
-abordagem Ports and Adapters:
-- `domain`: modelo `User`, enumeração `UserRole`, value object `Email` e contrato `UserRepository`.
-- `application/useCase`: casos de uso para registro e autenticação, mantendo as regras do fluxo fora 
-dos controllers.
-- `infrastructure`: adaptador do repositório para Spring Data JPA, entidade de persistência e mapper;
-contém também configuração de segurança, JWT e integração de IA.
-- `presentation`: controllers REST e DTOs de entrada/saída.
+- Java 25 e Spring Boot 4.
+- Spring MVC, Spring Security, validação Jakarta e Spring Data JPA.
+- PostgreSQL para persistência.
+- LangChain4j e Google Gemini para os agentes de IA.
+- Jsoup e Apache HttpClient 5 para coleta e análise do HTML no agente SEO.
+- Maven Wrapper para build e testes.
 
-O contrato `UserRepository` funciona como porta do domínio;  
-`UserRepositoryAdapter` conecta essa porta ao repositório Spring Data JPA.  
-`UserMapper` usa MapStruct para converter entre `User` e `UserSetup`.  
-Os agentes de conteúdo e editais são declarados como interfaces LangChain4j com instruções de sistema;
-seus controllers ficam na camada `presentation`.
+O backend segue uma arquitetura de **monólito modular**, organizada por capacidade de negócio. Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para os limites dos módulos e as regras de dependência.
 
-Essa estrutura aplica alguns conceitos de DDD, como entidade, value object, caso de uso e repositório.
-Não é uma implementação completa de DDD: não há, por exemplo, agregados e eventos de domínio explícitos ou módulos separados por bounded context.
+## Executar localmente
 
-### Estrutura atual
+### Pré-requisitos
+
+- JDK 25.
+- PostgreSQL acessível e um banco criado para a aplicação.
+- Chave de API válida para o Google Gemini.
+- `curl` e `jq` para reproduzir os exemplos de integração abaixo.
+
+### Configurar o ambiente
+
+O backend lê suas configurações do ambiente do processo. Configure os valores para sua instalação antes de iniciar; não salve chaves, senhas ou segredos no README, no código ou em arquivos versionados.
+
+Variáveis obrigatórias:
+
+| Variável | Finalidade |
+| --- | --- |
+| `PG_URL` | URL JDBC do PostgreSQL, por exemplo `jdbc:postgresql://<host>:<porta>/<banco>`. |
+| `PG_USERNAME` | Usuário do banco. |
+| `PG_PASSWORD` | Senha do banco. |
+| `JWT_SECRET` | Segredo Base64 com pelo menos 32 bytes aleatórios. |
+| `GEMINI_API_KEY` | Chave usada pelo backend para chamar o Gemini. |
+
+Variáveis opcionais:
+
+| Variável | Padrão / finalidade |
+| --- | --- |
+| `COOKIE_SECURE` | `true` por padrão. Mantenha `true` quando houver HTTPS; use `false` somente para desenvolvimento local via HTTP. |
+| `CORS_ALLOWED_ORIGINS` | Origens exatas permitidas, separadas por vírgula. O padrão é `http://localhost:5173`. |
+
+Exemplo de configuração no terminal Linux/macOS (substitua os valores pelos da sua máquina e não os compartilhe):
+
+```bash
+export PG_URL='jdbc:postgresql://<host>:<porta>/<banco>'
+export PG_USERNAME='<usuario>'
+export PG_PASSWORD='<senha>'
+export JWT_SECRET="$(openssl rand -base64 32)"
+export GEMINI_API_KEY='<chave-do-gemini>'
+export COOKIE_SECURE=false
+```
+
+`COOKIE_SECURE=false` é apenas para uso local sobre HTTP. Em ambientes publicados, use HTTPS e cookies `Secure`. Guarde credenciais e chaves em um gerenciador de segredos ou variáveis protegidas do ambiente de execução.
+
+### Iniciar e testar
+
+Na raiz deste projeto:
+
+```bash
+./mvnw spring-boot:run
+```
+
+A aplicação Spring Boot usa a porta `8080` por padrão. Para compilar e executar os testes:
+
+```bash
+./mvnw test
+```
+
+No Windows, use `mvnw.cmd` no lugar de `./mvnw`.
+
+O Hibernate está configurado para atualizar o esquema (`ddl-auto=update`) nesta configuração do projeto. Em produção, revise a estratégia de migração do banco e o gerenciamento de esquema antes de implantar.
+
+## Autenticação e proteção CSRF
+
+A API usa JWT em cookies `HttpOnly`, não tokens Bearer guardados pelo frontend. As rotas autenticadas leem o cookie `ACCESS_TOKEN`; o cookie `REFRESH_TOKEN` é usado para renovar a sessão. Requisições que alteram dados também exigem o token CSRF:
+
+1. Faça `GET /csrf`, preservando os cookies da resposta. O JSON contém `headerName` e `token`.
+2. Envie o token no cabeçalho indicado em todas as requisições `POST`, `PUT`, `PATCH` e `DELETE`, mantendo os cookies.
+3. Faça login em `POST /auth/login`; o servidor retorna `204 No Content` e define os cookies de sessão.
+
+Exemplo de fluxo com `curl` e `jq` (use dados de teste):
+
+```bash
+API_URL='http://localhost:8080'
+COOKIE_JAR="$(mktemp)"
+trap 'rm -f "$COOKIE_JAR"' EXIT
+CSRF_TOKEN="$(curl -fsS -c "$COOKIE_JAR" "$API_URL/csrf" | jq -r '.token')"
+
+curl -sS -o /dev/null -w 'Cadastro: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+  -H 'Content-Type: application/json' \
+  -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
+  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  "$API_URL/users/register"
+
+curl -sS -o /dev/null -w 'Login: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
+  -H 'Content-Type: application/json' \
+  -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
+  -d '{"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  "$API_URL/auth/login"
+
+curl -fsS -b "$COOKIE_JAR" "$API_URL/auth/me"
+```
+
+Use uma senha descartável de desenvolvimento nos exemplos. O cabeçalho CSRF padrão usado pelo backend é `X-CSRF-TOKEN`. A interface web já realiza esse fluxo automaticamente. Em produção, configure `CORS_ALLOWED_ORIGINS` com a origem exata do frontend e mantenha HTTPS.
+
+## Endpoints da API
+
+Todos os caminhos abaixo são relativos à origem da API, normalmente `http://localhost:8080`. Exceto os endpoints públicos de autenticação/cadastro, é necessária uma sessão válida. Operações que alteram dados exigem CSRF.
+
+### Contas e sessão
+
+| Método | Caminho | Acesso | Descrição |
+| --- | --- | --- | --- |
+| `GET` | `/csrf` | Público | Obtém o nome do cabeçalho e o token CSRF. |
+| `POST` | `/users/register` | Público | Cria uma conta com papel `DEFAULT`. |
+| `POST` | `/auth/login` | Público | Autentica e define cookies JWT. |
+| `POST` | `/auth/refresh` | Cookie de refresh | Renova a sessão e gira os tokens. |
+| `POST` | `/auth/logout` | Cookie de refresh | Revoga o refresh token e limpa os cookies. |
+| `GET` | `/auth/me` | Autenticado | Retorna os dados da conta atual. |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/users/**` | `ADMINISTRATOR` | Gerencia contas de usuários. |
+
+### Agentes
+
+| Método | Caminho | Descrição |
+| --- | --- | --- |
+| `POST` | `/agents/content/produce` | Cria um rascunho e uma conversa, ou continua uma conversa do usuário autenticado. |
+| `GET` | `/agents/content/conversations` | Lista as conversas do usuário autenticado. |
+| `GET` | `/agents/content/conversations/{conversationId}/messages` | Lista mensagens em ordem cronológica, apenas da conversa do usuário autenticado. |
+| `GET` | `/agents/leads` | Lista os leads do usuário autenticado. |
+| `POST` | `/agents/leads` | Cadastra um lead. |
+| `POST` | `/agents/leads/import` | Importa de 1 a 100 leads em JSON. |
+| `POST` | `/agents/leads/{leadId}/qualify` | Compara um lead do usuário com o ICP informado. |
+| `POST` | `/agents/seo/analyze` | Busca uma página HTTPS pública e retorna a auditoria SEO. |
+
+## Exemplos de uso dos agentes
+
+Os exemplos abaixo mostram corpos JSON. Use a autenticação e o cabeçalho CSRF descritos acima.
+
+### Produção de conteúdo
+
+Campos obrigatórios: `objective`, `targetAudience`, `channel`, `format` e `keyInformation`. Para continuar uma conversa, envie o `conversationId` retornado na resposta anterior. Sem ele, o backend inicia uma conversa nova.
+
+```json
+{
+  "objective": "Apresentar um serviço e incentivar contato",
+  "targetAudience": "Pequenas empresas que querem melhorar sua presença digital",
+  "channel": "LinkedIn",
+  "format": "Publicação curta",
+  "keyInformation": "Inclua apenas informações confirmadas sobre o serviço.",
+  "tone": "Profissional e acessível",
+  "callToAction": "Entre em contato para conversar",
+  "language": "pt-BR"
+}
+```
+
+A resposta contém `conversationId`, `draft` e `humanReviewRequired`. O último campo indica que o conteúdo deve ser revisado por uma pessoa antes do uso.
+
+### Cadastro e qualificação de leads
+
+Cadastro:
+
+```json
+{
+  "name": "Marina Costa",
+  "company": "Acme Tecnologia",
+  "jobTitle": "Diretora de operações",
+  "email": "marina@example.com",
+  "industry": "Tecnologia",
+  "companySize": "20 a 200 pessoas",
+  "location": "São Paulo",
+  "notes": "Informação fornecida pela equipe comercial."
+}
+```
+
+Importação em lote usa `POST /agents/leads/import`:
+
+```json
+{
+  "leads": [
+    {
+      "name": "Marina Costa",
+      "company": "Acme Tecnologia",
+      "industry": "Tecnologia"
+    }
+  ]
+}
+```
+
+Qualificação usa `POST /agents/leads/{leadId}/qualify`:
+
+```json
+{
+  "idealCustomerProfile": "Empresas B2B de tecnologia com 20 a 200 funcionários."
+}
+```
+
+A qualificação retorna uma pontuação de 0 a 100, a classificação (`QUALIFIED`, `REVIEW` ou `NOT_QUALIFIED`), justificativa e próximo passo sugerido. Esses dados são recomendações geradas por IA, não decisões automáticas.
+
+### Auditoria SEO
+
+```json
+{
+  "url": "https://www.exemplo.com/servicos",
+  "targetKeyword": "consultoria de marketing",
+  "supplementalText": "Página voltada a pequenas empresas; o objetivo é gerar pedidos de contato."
+}
+```
+
+O endereço precisa ser HTTPS e apontar para um host público; endereços privados/locais e portas personalizadas são recusados, redirecionamentos não são seguidos e o HTML tem limite de tamanho. A resposta combina sinais observados (título, meta description, headings, imagens e links) com recomendações e uma pontuação orientativa. O servidor envia os dados extraídos e o contexto opcional ao Gemini.
+
+## Privacidade e isolamento
+
+- Conversas e leads são vinculados à conta autenticada; a API não permite acessar dados de outra conta.
+- A sessão usa cookies `HttpOnly`, `SameSite` e `Secure` configurável; o token CSRF protege operações de escrita.
+- A chave do Gemini permanece no ambiente do backend e não deve ser enviada pelo frontend.
+- Todo conteúdo retornado por IA deve ser revisado e validado por uma pessoa.
+
+## Estrutura do projeto
 
 ```text
 src/
 ├── main/
-│   ├── java/ai/incorptech/cmiap/
-│   │   ├── CmiapApplication.java
-│   │   ├── application/useCase/
-│   │   │   ├── AuthenticateUserService.java
-│   │   │   └── RegisterUserService.java
-│   │   ├── application/modules/contentGenerator/ContentGeneratorService.java
-│   │   ├── domain/
-│   │   │   ├── model/ (User, UserRole)
-│   │   │   ├── repository/UserRepository.java
-│   │   │   └── valueObject/Email.java
-│   │   ├── infrastructure/
-│   │   │   ├── ai/memory/ (provider namespaced por agente)
-│   │   │   ├── ai/modules/publicNotices/PublicNoticeService.java
-│   │   │   ├── persistence/ (adapter, entidades, store de memória e mapper)
-│   │   │   └── security/ (configuração, filtro e serviço JWT)
-│   │   └── presentation/
-│   │       ├── controller/ (AuthController, ContentGenerationController, PublicNoticeController)
-│   │       └── controller/dto/ (auth, content)
-│   └── resources/application.properties
+│   ├── java/ai/incorp/cmiap/
+│   │   ├── agent/content/   # Geração de conteúdo e histórico
+│   │   ├── agent/leads/     # Cadastro e qualificação de leads
+│   │   ├── agent/seo/       # Auditoria on-page de SEO
+│   │   ├── security/        # Cookies, JWT, CSRF e CORS
+│   │   └── user/            # Contas e administração de usuários
+│   └── resources/
 └── test/
-        ├── java/ai/incorptech/cmiap/
-        └── resources/application.properties
 ```
 
-## API
+## Documentação relacionada
 
-As rotas de autenticação são públicas. As demais rotas exigem o cabeçalho `Authorization: Bearer <token>`.
-
-### Registrar usuário
-
-`POST /auth/register` retorna `201 Created` sem corpo. Nome, e-mail e senha são obrigatórios; a senha deve ter pelo menos seis caracteres.
-
-```json
-{
-    "name": "Maria Silva",
-    "email": "maria@example.com",
-    "password": "senha-segura"
-}
-```
-
-### Autenticar
-
-`POST /auth/login` retorna `200 OK` e um token Bearer.
-
-```json
-{
-    "email": "maria@example.com",
-    "password": "senha-segura"
-}
-```
-
-Exemplo de resposta:
-
-```json
-{
-    "token": "<jwt>",
-    "type": "Bearer"
-}
-```
-
-### Gerar conteúdo
-
-`POST /ai/content/generate` recebe um JSON e retorna `200 OK` com o identificador da conversa
-(`conversationId`) e o conteúdo gerado. A rota exige autenticação Bearer. Na primeira chamada,
-omita `conversationId`; a API cria um UUID. Para continuar a mesma conversa, envie esse UUID nas
-chamadas seguintes. O ID pertence ao usuário autenticado e não permite acessar a memória de outro
-usuário.
-
-Campos `topic` e `format` são obrigatórios. Os demais são opcionais. Os limites são: tema 500
-caracteres, formato/produto/canal 100, objetivo/público 300 e referências 4.000.
-
-```json
-{
-    "conversationId": "251b24d9-2686-4e68-aa72-193f3d66fa62",
-    "topic": "Como a gestão documental integrada pode apoiar conselhos profissionais",
-    "format": "Carrossel para LinkedIn",
-    "product": "Incorp Next",
-    "channel": "LinkedIn",
-    "objective": "Explicar os benefícios de organizar documentos e processos em um fluxo integrado",
-    "audience": "Gestores de conselhos profissionais",
-    "referenceFacts": "O sistema permite configurar fluxos de trabalho e centralizar documentos."
-}
-```
-
-Exemplo de resposta:
-
-```json
-{
-    "conversationId": "251b24d9-2686-4e68-aa72-193f3d66fa62",
-    "content": "Texto produzido conforme o tema, formato e contexto informados."
-}
-```
-
-O campo `content` é texto gerado pela IA. O formato visual do texto não é fixado como HTML ou
-README; informe o formato editorial desejado em `format`. O agente não publica o conteúdo em redes
-sociais e não deve inventar dados ou funcionalidades ausentes das referências fornecidas.
-
-Para apagar a memória da conversa, mantendo a autenticação do mesmo usuário:
-
-```http
-DELETE /ai/content/conversations/251b24d9-2686-4e68-aa72-193f3d66fa62
-Authorization: Bearer <jwt>
-```
-
-### Memória de conversa dos agentes
-
-O agente de conteúdo usa `@MemoryId` e um `ChatMemoryProvider` específico, conectado pelo modo
-explícito de `@AiService`. O provider prefixa toda chave com o identificador fixo do agente
-(`content-generator`); a parte restante identifica usuário e conversa. Portanto, mesmo que duas
-conversas usem o mesmo UUID, usuários diferentes não dividem memória, e agentes diferentes não
-compartilham mensagens.
-
-Exemplo de teste: na primeira chamada, envie o prompt sem `conversationId` e guarde o ID devolvido.
-Depois, envie-o junto a um pedido de continuação:
-
-```bash
-curl -X POST http://localhost:8080/ai/content/generate \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"topic":"Gestão documental integrada","format":"Post para LinkedIn"}'
-```
-
-Use o valor de `conversationId` recebido na primeira resposta:
-
-```bash
-curl -X POST http://localhost:8080/ai/content/generate \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"conversationId":"<conversationId>","topic":"Ajuste a sugestão anterior para gestores","format":"Post para LinkedIn"}'
-```
-
-O `PostgresChatMemoryStore` salva as mensagens serializadas pelo próprio LangChain4j na tabela
-`chat_memories`. Como as demais entidades, ela é criada pelo Hibernate com a configuração atual de
-`ddl-auto`. A memória mantém no máximo 20 mensagens por conversa; isso é uma janela de mensagens,
-não uma contagem de turnos ou tokens. A memória é contexto para o modelo, não substitui um histórico
-completo para exibição ao usuário.
-
-Ao adicionar um agente, declare um bean `AgentChatMemoryProvider` com um namespace único, por
-exemplo `public-notices`, e configure a interface com `@AiService(wiringMode = EXPLICIT,
-chatModel = "googleAiGeminiChatModel", chatMemoryProvider = "publicNoticesChatMemoryProvider")`.
-Passe também em `@MemoryId` um ID de conversa gerado pelo servidor e vinculado ao usuário
-autenticado. Cada agente usa seu próprio provider e, portanto, seu próprio namespace, embora todos
-possam compartilhar o mesmo `PostgresChatMemoryStore`.
-
-## Configuração e execução
-Pré-requisitos: JDK 25, PostgreSQL e uma chave de API do Google Gemini.
-1. Crie um banco PostgreSQL para a aplicação. O `application.properties` atual aponta para 
-`localhost:5432/cmiap`.
-2. Configure credenciais do banco, segredo JWT e chave Gemini por variáveis de ambiente ou 
-configuração externa. As propriedades correspondentes incluem `spring.datasource.username`, 
-`spring.datasource.password`, `jwt.secret.key` e `langchain4j.google-ai-gemini.chat-model.api-key`.
-3. Inicie a aplicação.
-
-## Persistência e cuidados de configuração
-A tabela `users` armazena UUID, nome, e-mail único, senha codificada e perfil. A configuração atual
-de Hibernate usa `ddl-auto=create-drop`, que recria o esquema ao iniciar e o remove ao encerrar. 
-É apropriada apenas para desenvolvimento/testes, não para um banco com dados que devam ser 
-preservados.
-
-O arquivo de configuração de execução contém atualmente credenciais e chaves diretamente no arquivo. 
-Não reutilize nem publique esses valores: remova-os do arquivo versionado, injete segredos pelo 
-ambiente/gerenciador de segredos e rotacione qualquer chave que já tenha sido exposta. Também 
-desative logs SQL detalhados em ambientes com dados sensíveis.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — arquitetura modular e responsabilidades dos pacotes.
+- [HELP.md](HELP.md) — referências do Spring Boot, configuração local e provisionamento administrativo.
+- [Frontend Incorp AI](https://github.com/C-26hub/Incorp_front) — interface web da plataforma.
