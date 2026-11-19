@@ -91,6 +91,12 @@ export COOKIE_SECURE=false
 
 `COOKIE_SECURE=false` é apenas para uso local sobre HTTP. Em ambientes publicados, use HTTPS e cookies `Secure`. Guarde credenciais e chaves em um gerenciador de segredos ou variáveis protegidas do ambiente de execução.
 
+### Publicar no Render com Docker
+
+Crie um serviço Web ligado a este repositório, selecione o runtime **Docker** e mantenha o diretório raiz padrão. O Render usará o `Dockerfile` da raiz; a imagem lê a porta fornecida pelo Render (`PORT`) e inicia a API nessa porta.
+
+Adicione no ambiente do serviço as variáveis obrigatórias listadas acima (`PG_URL`, `PG_USERNAME`, `PG_PASSWORD`, `JWT_SECRET` e `GEMINI_API_KEY`). Para o PostgreSQL do Render, configure `PG_URL` no formato JDBC `jdbc:postgresql://<host-interno>:<porta>/<banco>` e informe usuário e senha nas variáveis correspondentes. Mantenha `COOKIE_SECURE=true` e configure `CORS_ALLOWED_ORIGINS` com a origem exata do frontend publicado.
+
 ### Iniciar e testar
 
 Na raiz deste projeto:
