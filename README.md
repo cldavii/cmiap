@@ -520,3 +520,15 @@ src/
 - [ARCHITECTURE.md](ARCHITECTURE.md) — arquitetura modular e responsabilidades dos pacotes.
 - [HELP.md](HELP.md) — referências do Spring Boot, configuração local e provisionamento administrativo.
 - [Frontend Incorp AI](https://github.com/C-26hub/Incorp_front) — interface web da plataforma.
+
+## Equipe
+
+Davi Felipe Silva Clemente - Dev Backend
+Gabriel Eduardo de Moura França - Dev Backend
+Pedro Henrique Miranda Valença - Dev Backend
+Marcelo barbosa - Dev Frontend
+Lucas Mendes da Silva - Dev Fronted
+Carolline Barbosa Ferreira -Dev Frontend
+Maria Cecília de Lima e Silva- Dev Frontend
+Marcos Vinicius Souza dos Santos - Dev FrontEnd
+Caio Sabino Coelho - Dev Backend
