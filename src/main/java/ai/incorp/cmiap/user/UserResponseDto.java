@@ -6,7 +6,7 @@ public record UserResponseDto(
         UUID id,
         String name,
         String surname,
-        Long cpf,
+        String cpf,
         String email,
         UserRole role,
         UserDepartment department

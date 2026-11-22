@@ -272,6 +272,7 @@ class SecurityConfigurationTests {
     void registrationWaitsForDepartmentAssignedByAdministrator() throws Exception {
         String email = UUID.randomUUID() + "@example.com";
         String password = "Test-password-123";
+        String cpf = "01234567890";
         mockMvc.perform(post("/users/register")
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -279,17 +280,18 @@ class SecurityConfigurationTests {
                                 {
                                   "name":"Test",
                                   "surname":"User",
-                                  "cpf":%d,
+                                  "cpf":"%s",
                                   "email":"%s",
                                   "password":"%s",
                                   "department":"MARKETING"
                                 }
-                                """.formatted(validCpf(), email, password)))
+                                """.formatted(cpf, email, password)))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.cpf").value(cpf))
                 .andExpect(jsonPath("$.role").value("DEFAULT"))
                 .andExpect(jsonPath("$.department").doesNotExist());
 
-        UUID id = userService.findUserByEmail(email).getId();
+        UUID id = userService.findUserByCpf(cpf).getId();
         CsrfDetails csrf = getCsrfDetails();
         String login = "{\"email\":\"%s\",\"password\":\"%s\",\"department\":\"MARKETING\"}".formatted(email, password);
         mockMvc.perform(post("/auth/login").session(csrf.session())
@@ -448,11 +450,11 @@ class SecurityConfigurationTests {
         }
     }
 
-    private long validCpf() {
+    private String validCpf() {
         String base = Long.toString(100_000_000L + new java.security.SecureRandom().nextInt(900_000_000));
         int first = cpfDigit(base, 9);
         int second = cpfDigit(base + first, 10);
-        return Long.parseLong(base + first + second);
+        return base + first + second;
     }
 
     private int cpfDigit(String digits, int length) {
