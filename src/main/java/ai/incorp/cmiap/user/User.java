@@ -1,6 +1,7 @@
 package ai.incorp.cmiap.user;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,8 +35,9 @@ public class User {
     private String surname;
 
     @Setter
+    @Convert(converter = CpfColumnConverter.class)
     @Column(nullable = false, unique = true)
-    private Long cpf;
+    private String cpf;
 
     @Setter
     @Column(nullable = false, unique = true)

@@ -8,17 +8,17 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    boolean existsByCpf(Long cpf);
+    boolean existsByCpf(String cpf);
 
     boolean existsByEmail(String email);
 
-    boolean existsByCpfAndIdNot(Long cpf, UUID id);
+    boolean existsByCpfAndIdNot(String cpf, UUID id);
 
     boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
 
     List<User> findByNameIgnoreCase(String name);
 
-    Optional<User> findByCpf(Long cpf);
+    Optional<User> findByCpf(String cpf);
 
     Optional<User> findByEmailIgnoreCase(String email);
 }

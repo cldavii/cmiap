@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Pattern CPF_PATTERN = Pattern.compile("[0-9]{11}");
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
                     + "[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
@@ -26,20 +27,16 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public boolean isValidCpf(Long cpf) {
-        if (cpf == null) {
+    public boolean isValidCpf(String cpf) {
+        if (cpf == null || !CPF_PATTERN.matcher(cpf).matches()
+                || cpf.chars().allMatch(digit -> digit == cpf.charAt(0))) {
             return false;
         }
 
-        String digits = cpf.toString();
-        if (digits.length() != 11 || digits.chars().allMatch(character -> character == digits.charAt(0))) {
-            return false;
-        }
-
-        int firstCheckDigit = calculateCpfCheckDigit(digits, 9);
-        int secondCheckDigit = calculateCpfCheckDigit(digits, 10);
-        return digits.charAt(9) - '0' == firstCheckDigit
-                && digits.charAt(10) - '0' == secondCheckDigit;
+        int firstCheckDigit = calculateCpfCheckDigit(cpf, 9);
+        int secondCheckDigit = calculateCpfCheckDigit(cpf, 10);
+        return cpf.charAt(9) - '0' == firstCheckDigit
+                && cpf.charAt(10) - '0' == secondCheckDigit;
     }
 
     public boolean isValidEmail(String email) {
@@ -129,7 +126,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User findUserByCpf(Long cpf) {
+    public User findUserByCpf(String cpf) {
+        validateCpf(cpf);
         return userRepository.findByCpf(cpf)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado."));
     }
@@ -247,7 +245,7 @@ public class UserService {
         }
     }
 
-    private void validateCpf(Long cpf) {
+    private void validateCpf(String cpf) {
         if (!isValidCpf(cpf)) {
             throw new UserValidationException("CPF inválido.");
         }
@@ -284,7 +282,7 @@ public class UserService {
         );
     }
 
-    private void ensureCpfIsAvailable(Long cpf, UUID userId) {
+    private void ensureCpfIsAvailable(String cpf, UUID userId) {
         if (userRepository.existsByCpfAndIdNot(cpf, userId)) {
             throw new UserConflictException("Já existe um usuário cadastrado com este CPF.");
         }

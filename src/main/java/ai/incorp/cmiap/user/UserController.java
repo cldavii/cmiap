@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @GetMapping("/by-cpf/{cpf}")
-    public UserResponseDto findUserByCpf(@PathVariable Long cpf) {
+    public UserResponseDto findUserByCpf(@PathVariable String cpf) {
         return userMapper.toResponseDto(userService.findUserByCpf(cpf));
     }
 

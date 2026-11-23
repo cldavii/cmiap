@@ -39,15 +39,8 @@ public class AdminProvisioningRunner implements ApplicationRunner {
             );
         }
 
-        long cpfNumber;
-        try {
-            cpfNumber = Long.parseLong(cpf);
-        } catch (NumberFormatException exception) {
-            throw new IllegalStateException("ADMIN_CPF deve conter somente os 11 dígitos do CPF.", exception);
-        }
-
         User admin = userService.provisionAdministrator(
-                new UserRegistrationDto(name, surname, cpfNumber, email, password, UserDepartment.MARKETING)
+                new UserRegistrationDto(name, surname, cpf, email, password, UserDepartment.MARKETING)
         );
         if (admin.getRole() != UserRole.ADMINISTRATOR) {
             throw new IllegalStateException("O provisionamento não resultou em uma conta administradora.");

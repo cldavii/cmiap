@@ -124,7 +124,7 @@ Para executar apenas a suíte isolada de serviços, regras de negócio e control
 
 No Windows, use `mvnw.cmd` no lugar de `./mvnw`.
 
-O Hibernate está configurado para atualizar o esquema (`ddl-auto=update`) nesta configuração do projeto. Em produção, revise a estratégia de migração do banco e o gerenciamento de esquema antes de implantar.
+O Hibernate está configurado para atualizar o esquema (`ddl-auto=update`). Para o suporte a zeros iniciais no CPF, a API usa texto com 11 dígitos. O Hibernate mantém a coluna numérica existente e recompõe os 11 dígitos na leitura. Ao publicar, atualize primeiro o backend e depois o frontend.
 
 ## Autenticação e proteção CSRF
 
@@ -145,7 +145,7 @@ CSRF_TOKEN="$(curl -fsS -c "$COOKIE_JAR" "$API_URL/csrf" | jq -r '.token')"
 curl -sS -o /dev/null -w 'Cadastro: HTTP %{http_code}\n' -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
   -H 'Content-Type: application/json' \
   -H "X-CSRF-TOKEN: $CSRF_TOKEN" \
-  -d '{"name":"Ana","surname":"Souza","cpf":52998224725,"email":"ana@example.com","password":"<senha-de-teste>"}' \
+  -d '{"name":"Ana","surname":"Souza","cpf":"01234567890","email":"ana@example.com","password":"<senha-de-teste>"}' \
   "$API_URL/users/register"
 
 # Continue após um administrador atribuir Marketing à conta da Ana.
@@ -169,7 +169,7 @@ Todos os caminhos abaixo são relativos à origem da API, normalmente `http://lo
 | Método | Caminho | Acesso | Descrição |
 | --- | --- | --- | --- |
 | `GET` | `/csrf` | Público | Obtém o nome do cabeçalho e o token CSRF. |
-| `POST` | `/users/register` | Público | Cria uma conta `DEFAULT` que aguarda atribuição de departamento. |
+| `POST` | `/users/register` | Público | Cria uma conta `DEFAULT` que aguarda atribuição de departamento. Envie o CPF como texto com 11 dígitos, incluindo zeros iniciais. |
 | `POST` | `/auth/login` | Público | Confere e-mail e senha. O campo `department` aceita `MARKETING`, `COMMERCIAL` ou `ADMINISTRATOR`. O último exige o papel administrativo existente. |
 | `PATCH` | `/users/{id}` | Administrador | Atribui o departamento enviando `{"department":"MARKETING"}` ou `{"department":"COMMERCIAL"}`. |
 | `POST` | `/auth/refresh` | Cookie de refresh | Renova a sessão e gira os tokens. |

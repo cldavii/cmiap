@@ -3,7 +3,7 @@ package ai.incorp.cmiap.user;
 public record UserRegistrationDto(
         String name,
         String surname,
-        Long cpf,
+        String cpf,
         String email,
         String password,
         UserDepartment department
